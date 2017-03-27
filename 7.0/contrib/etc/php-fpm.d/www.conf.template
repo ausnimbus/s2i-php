@@ -1,0 +1,12 @@
+[global]
+daemonize = no
+
+[www]
+listen = /run/php-fpm/php-fpm.sock
+
+pm = dynamic
+pm.max_children = ${PHPFPMD_MAX_CHILDREN}
+pm.start_servers = ${PHPFPMD_START_SERVERS}
+pm.min_spare_servers = ${PHPFPMD_START_SERVERS}
+pm.max_spare_servers = ${PHPFPMD_MAX_SPARE_SERVERS}
+pm.max_requests = 500

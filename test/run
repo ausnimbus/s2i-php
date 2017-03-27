@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+function install_s2i {
+  go get github.com/openshift/source-to-image
+  pushd ${GOPATH}/src/github.com/openshift/source-to-image
+  export PATH=$PATH:${GOPATH}/src/github.com/openshift/source-to-image/_output/local/bin/linux/amd64/
+  hack/build-go.sh
+	popd
+}
+
+function build_dockerhub {
+	curl -X POST -H "Content-Type: application/json" --data '{"docker_tag": '$1'}' \
+  https://registry.hub.docker.com/u/$TRAVIS_REPO_SLUG/trigger/$DOCKER_HUB_TOKEN/
+}
+
+install_s2i
+for i in ${VERSIONS//,/ }
+do
+    docker build -t $TRAVIS_REPO_SLUG:$i $i/
+    ./$i/test/run
+    build_dockerhub $i
+done
+build_dockerhub 'latest'
