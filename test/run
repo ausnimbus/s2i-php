@@ -1,24 +1,33 @@
 #!/bin/bash
 set -e
 
-function install_s2i {
-  go get github.com/openshift/source-to-image
-  pushd ${GOPATH}/src/github.com/openshift/source-to-image
-  export PATH=$PATH:${GOPATH}/src/github.com/openshift/source-to-image/_output/local/bin/linux/amd64/
-  hack/build-go.sh
-	popd
-}
+# Install s2i
+go get github.com/openshift/source-to-image
+pushd ${GOPATH}/src/github.com/openshift/source-to-image
+export PATH=$PATH:${GOPATH}/src/github.com/openshift/source-to-image/_output/local/bin/linux/amd64/
+hack/build-go.sh
+popd
 
-function build_dockerhub {
-	curl -X POST -H "Content-Type: application/json" --data '{"docker_tag": '$1'}' \
-  https://registry.hub.docker.com/u/$TRAVIS_REPO_SLUG/trigger/$DOCKER_HUB_TOKEN/
-}
+# Install docker-squash
+wget https://github.com/jwilder/docker-squash/releases/download/v0.2.0/docker-squash-linux-amd64-v0.2.0.tar.gz
+sudo tar -C /usr/local/bin -xzvf docker-squash-linux-amd64-v0.2.0.tar.gz
 
-install_s2i
-for i in ${VERSIONS//,/ }
+# Docker login
+docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" quay.io
+
+for i in */
 do
-    docker build -t $TRAVIS_REPO_SLUG:$i $i/
-    ./$i/test/run
-    build_dockerhub $i
+  if [[ ${i%*/} != 'test' ]]; then
+
+    version=${i%*/}
+    image=quay.io/$TRAVIS_REPO_SLUG:$version
+
+    docker build -t $image $version/
+    docker save $image | sudo /usr/local/bin/docker-squash | docker load
+    IMAGE_NAME=$image ./$version/test/run
+    docker push $image
+  fi
 done
-build_dockerhub 'latest'
+
+docker tag $image quay.io/$TRAVIS_REPO_SLUG:latest
+docker push quay.io/$TRAVIS_REPO_SLUG:latest
