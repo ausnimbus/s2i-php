@@ -9,8 +9,7 @@ hack/build-go.sh
 popd
 
 # Install docker-squash
-wget https://github.com/jwilder/docker-squash/releases/download/v0.2.0/docker-squash-linux-amd64-v0.2.0.tar.gz
-sudo tar -C /usr/local/bin -xzvf docker-squash-linux-amd64-v0.2.0.tar.gz
+pip install docker-squash
 
 # Docker login
 docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" quay.io
@@ -23,7 +22,7 @@ do
     image=quay.io/$TRAVIS_REPO_SLUG:$version
 
     docker build -t $image $version/
-    docker save $image | sudo /usr/local/bin/docker-squash | docker load
+    docker-squash -t $image $image
     IMAGE_NAME=$image ./$version/test/run
     docker push $image
   fi
