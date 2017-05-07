@@ -1,0 +1,48 @@
+#!/bin/bash -e
+source /opt/app-root/etc/php_environment
+
+envsubst < /opt/app-root/etc/php.ini.template > /usr/local/etc/php/php.ini
+envsubst < /opt/app-root/etc/php.d/10-opcache.ini.template > /usr/local/etc/php/conf.d/10-opcache.ini
+
+if [ -n "${NO_MEMORY_LIMIT:-}" -o -z "${MEMORY_LIMIT_IN_BYTES:-}" ]; then
+  max_apache_workers=10
+  max_php_workers=20
+  echo "-> No cgroup limits set"
+else
+  # Distribute a 1/3 resource distribution between Apache and php-fpm
+  # A simple calculation for max_*_workers would be: Total Memory / Size Per process.
+  # The total memory is determined from the Cgroups
+  memory_limit=$((MEMORY_LIMIT_IN_BYTES/1024/1024))
+
+  # Apache process is estimated to 10MB (/4 = 25%).
+  max_apache_workers=$(($memory_limit/10/4))
+  [[ $max_apache_workers -le 1 ]] && max_apache_workers=2
+
+  # php-fpm process is estimated to 32MB (/4*3 = 75%).
+  max_php_workers=$(($memory_limit/32/4*3))
+  [[ $max_php_workers -le 1 ]] && max_php_workers=2
+
+  echo "-> Cgroups memory limit is set"
+fi
+
+export HTTPD_MAX_REQUEST_WORKERS=${HTTPD_MAX_REQUEST_WORKERS:-$max_apache_workers}
+apache_start_servers=$(($HTTPD_MAX_REQUEST_WORKERS/4))
+[[ $apache_start_servers -le 1 ]] && apache_start_servers=1
+export HTTPD_START_SERVERS=${HTTPD_START_SERVERS:-$apache_start_servers}
+export HTTPD_MAX_SPARE_SERVERS=${HTTPD_MAX_SPARE_SERVERS:-$((HTTPD_START_SERVERS*2))}
+echo "  using HTTPD_MAX_REQUEST_WORKERS=${HTTPD_MAX_REQUEST_WORKERS}"
+
+export PHPFPMD_MAX_CHILDREN=${PHPFPMD_MAX_CHILDREN:-$max_php_workers}
+phpfmd_start_servers=$(($PHPFPMD_MAX_CHILDREN/2))
+[[ $phpfmd_start_servers -le 1 ]] && phpfmd_start_servers=1
+export PHPFPMD_START_SERVERS=${PHPFPMD_START_SERVERS:-$phpfmd_start_servers}
+export PHPFPMD_MAX_SPARE_SERVERS=${PHPFPMD_MAX_SPARE_SERVERS:-$((PHPFPMD_START_SERVERS*2))}
+echo "  using PHPFPMD_MAX_CHILDREN=${PHPFPMD_MAX_CHILDREN}"
+
+envsubst < /opt/app-root/etc/conf.d/50-mpm-tuning.conf.template > /opt/app-root/etc/conf.d/50-mpm-tuning.conf
+envsubst < /opt/app-root/etc/conf.d/00-documentroot.conf.template > /opt/app-root/etc/conf.d/00-documentroot.conf
+
+envsubst < /opt/app-root/etc/php-fpm.d/www.conf.template > /usr/local/etc/php-fpm.d/www.conf
+
+exec /usr/sbin/httpd -D FOREGROUND -f /etc/apache2/httpd.conf &
+exec /usr/local/sbin/php-fpm -F

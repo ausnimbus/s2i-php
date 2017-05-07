@@ -1,0 +1,17 @@
+language: php
+
+sudo: false
+
+php:
+  - 5.6
+  - 7.0
+
+before_script:
+  - composer install --prefer-source
+
+script: ./vendor/bin/phpunit --colors tests
+
+cache:
+    directories:
+        - vendor
+
