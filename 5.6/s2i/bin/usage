@@ -1,6 +1,0 @@
-#!/bin/sh
-
-cat <<EOF
-This is a S2I PHP base image:
-To use it, install S2I: https://github.com/openshift/source-to-image
-EOF

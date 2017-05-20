@@ -1,32 +1,22 @@
 #!/bin/bash
-set -e
+#
+# The 'run' performs a simple test that verifies that image
+#
+# IMAGE_NAME specifies a name of the candidate image used for testing.
+# The image has to be available before this script is executed.
+#
 
-# Install s2i
-go get github.com/openshift/source-to-image
-pushd ${GOPATH}/src/github.com/openshift/source-to-image
-export PATH=$PATH:${GOPATH}/src/github.com/openshift/source-to-image/_output/local/bin/linux/amd64/
-hack/build-go.sh
-popd
+IMAGE_NAME=${IMAGE_NAME-ausnimbus/s2i-php:7.1}
+VERSION=${VERSION-"7.1"}
+S2I_ARGS=${S2I_ARGS:-""}
 
-# Install docker-squash
-pip install docker-squash
+TEST_APPS=({phpinfo,laravel-unit-test-example})
+VERSION_COMMAND="php -v"
 
-# Docker login
-docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" quay.io
+extra_tests() {
+  info 'Testing PRESTISSIMO'
+  CONTAINER_ARGS='-e PRESTISSIMO=true' test_application
+}
 
-for i in */
-do
-  if [[ ${i%*/} != 'test' ]]; then
-
-    version=${i%*/}
-    image=quay.io/$TRAVIS_REPO_SLUG:$version
-
-    docker build -t $image $version/
-    docker-squash -t $image $image
-    IMAGE_NAME=$image ./$version/test/run
-    docker push $image
-  fi
-done
-
-docker tag $image quay.io/$TRAVIS_REPO_SLUG:latest
-docker push quay.io/$TRAVIS_REPO_SLUG:latest
+test_dir="$(readlink -zf $(dirname "${BASH_SOURCE[0]}"))"
+source ${test_dir}/../common/tests/s2i
