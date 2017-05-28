@@ -3,9 +3,9 @@
 #
 # DO NOT EDIT IT DIRECTLY.
 #
+FROM php:7.0-fpm-alpine
 # <pre>
 
-FROM php:7.0-fpm-alpine
 MAINTAINER AusNimbus <support@ausnimbus.com.au>
 
 LABEL summary="Platform for running PHP 7.0 applications" \
@@ -15,7 +15,9 @@ LABEL summary="Platform for running PHP 7.0 applications" \
 
 ENV HOME=/opt/app-root/src
 
-RUN apk --no-cache add bash rsync git && rm -rf /var/cache/apk/* && \
+USER 0
+
+RUN apk --no-cache add bash rsync && \
     mkdir -p ${HOME}/.pki/nssdb && \
     chown -R 1001:0 ${HOME}/.pki && \
     adduser -S -u 1001 -G root -h ${HOME} -s /sbin/nologin \
@@ -32,7 +34,7 @@ COPY ./contrib/ /opt/app-root
 # </pre>
 # <s2i>
 
-EXPOSE 8080
+RUN apk --no-cache add git && rm -rf /var/cache/apk/*
 
 ENV STI_SCRIPTS_PATH=/usr/libexec/s2i
 
@@ -42,6 +44,13 @@ LABEL io.openshift.expose-services="8080:http" \
 
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
+
+# Directory with the sources is set as the working directory so all S2I scripts
+# can execute relative to this path.
+WORKDIR ${HOME}
+
+EXPOSE 8080
+CMD /usr/bin/base-usage
 
 # </s2i>
 # <template>
@@ -108,15 +117,15 @@ RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
 # </template>
 # <post>
 
-# Directory with the sources is set as the working directory so all STI scripts
-# can execute relative to this path.
-WORKDIR ${HOME}
+# Standardize on UID 100 (alpine:3.4 does not have the shadow package)
+RUN apk add shadow --no-cache --repository http://rsync.alpinelinux.org/alpine/latest-stable/community/ && \
+    usermod -o -u 100 default && \
+    apk del shadow
 
-# Drop the root user and make the content of /opt/app-root owned by user 1001
-RUN chown -R 1001:0 /opt/app-root && chmod -R ug+rwx /opt/app-root
-USER 1001
+# Drop the root user and make the content of /opt/app-root owned by user default
+RUN chown -R 100:0 /opt/app-root && chmod -R ug+rwx /opt/app-root
+USER 100
 
-CMD /usr/bin/base-usage
 ENTRYPOINT ["container-entrypoint"]
 
 # </post>

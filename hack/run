@@ -2,23 +2,11 @@
 
 NAME="php"
 DISPLAY_NAME="PHP"
-REPO="ausnimbus/s2i-php"
-TEMPLATES="pre,s2i,template,post"
+TYPE="s2i"
 VARIANT="alpine"
 VERSIONS="5.6,7.0,7.1"
-TAG="fpm-alpine"
+FROM="%NAME%:%VERSION%-fpm-%VARIANT%"
 
 DOCKER_PUSH=${DOCKER_PUSH:-"false"}
 
-if [ $# -ne 1 ]; then
-    echo "Usage: ./hack/run [build,update]"
-    exit
-fi
-
-if [ "$1" == "build" ]; then
-  source $(readlink -zf $(dirname "${BASH_SOURCE[0]}"))/../common/hack/run
-fi
-
-if [ "$1" == "update" ]; then
-  source $(readlink -zf $(dirname "${BASH_SOURCE[0]}"))/../common/hack/update
-fi
+source $(readlink -zf $(dirname "${BASH_SOURCE[0]}"))/../common/hack/run
