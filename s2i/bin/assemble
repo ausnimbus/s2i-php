@@ -17,7 +17,7 @@ if [ -f composer.json ]; then
   # Install Composer
   curl https://getcomposer.org/installer | php
 
-  # Enable Prestissimo (composer plugin) if provided
+  # Enable Prestissimo (composer plugin)
   if [ -n "$PRESTISSIMO" ]; then
     echo "Enabling Prestissimo (composer plugin)"
     ./composer.phar global require hirak/prestissimo

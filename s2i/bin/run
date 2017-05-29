@@ -14,12 +14,12 @@ else
   # The total memory is determined from the Cgroups
   memory_limit=$((MEMORY_LIMIT_IN_BYTES/1024/1024))
 
-  # Apache process is estimated to 10MB (/4 = 25%).
-  max_apache_workers=$(($memory_limit/10/4))
+  # Apache processes are estimated to 15MB each (Allocated 25% of total memory)
+  max_apache_workers=$(($memory_limit/15/4))
   [[ $max_apache_workers -le 1 ]] && max_apache_workers=2
 
-  # php-fpm process is estimated to 32MB (/4*3 = 75%).
-  max_php_workers=$(($memory_limit/32/4*3))
+  # php-fpm process are estimated to 64MB each (Allocated 75% of total memory)
+  max_php_workers=$(($memory_limit/64/4*3))
   [[ $max_php_workers -le 1 ]] && max_php_workers=2
 
   echo "-> Cgroups memory limit is set"

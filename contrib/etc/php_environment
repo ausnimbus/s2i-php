@@ -15,7 +15,6 @@ export SESSION_PATH=${SESSION_PATH:-/tmp/sessions}
 export SHORT_OPEN_TAG=${SHORT_OPEN_TAG:-OFF}
 # TODO should be dynamically calculated based on container memory limit/16
 export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-128}
-
 export OPCACHE_REVALIDATE_FREQ=${OPCACHE_REVALIDATE_FREQ:-2}
 
 export PHPRC=${PHPRC:-/usr/local/etc/php/php.ini}

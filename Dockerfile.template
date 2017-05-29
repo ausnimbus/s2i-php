@@ -52,7 +52,6 @@ RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
     echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/httpd.conf && \
     rm -f /usr/local/etc/php-fpm.d/zz-docker.conf && \
     mkdir /run/apache2 /tmp/sessions /run/php-fpm && \
-    chown -R 1001:0 /opt/app-root /tmp/sessions /run/apache2 /run/php-fpm && \
-    chmod -R a+rwx /tmp/sessions /run/apache2 /run/php-fpm \
-                   /usr/local/etc/php /usr/local/etc/php-fpm.d/ && \
-    chmod -R ug+rwx /opt/app-root
+    chown -R default:0 /opt/app-root /tmp/sessions /run/apache2 /run/php-fpm && \
+    chmod -R ug+rwx /tmp/sessions /run/apache2 /run/php-fpm \
+                   /usr/local/etc/php /usr/local/etc/php-fpm.d/

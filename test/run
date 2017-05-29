@@ -14,7 +14,8 @@ TEST_APPS=({phpinfo,laravel-unit-test-example})
 VERSION_COMMAND="php -v"
 
 extra_tests() {
-  info 'Testing PRESTISSIMO'
+  info 'Testing PRESTISSIMO=true'
+  S2I_ARGS="-e PRESTISSIMO=true" run_s2i_build ${app}
   CONTAINER_ARGS='-e PRESTISSIMO=true' test_application
 }
 
