@@ -77,7 +77,7 @@ node {
                                                         "dockerfilePath" : "versions/${versions[i]}/Dockerfile",
                                                         "from" : [
                                                                 "kind" : "ImageStreamTag",
-                                                                "name" : "php:${versions[i]}-fpm-alpine"
+                                                                "name" : "php:${versions[i]}-alpine"
                                                         ]
                                                 ],
                                                 "type" : "Docker"
