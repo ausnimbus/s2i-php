@@ -66,6 +66,11 @@ node {
                                                 ]
                                         ],
                                         "runPolicy" : "Serial",
+                                        "resources" : [
+                                            "limits" : [
+                                                "memory" : "2Gi"
+                                            ]
+                                        ],
                                         "source" : [
                                                 "git" : [
                                                         "uri" : "https://github.com/ausnimbus/s2i-php"
