@@ -149,6 +149,16 @@ node {
 }
 
                         }
+                        stage("Stage (PHP ${versions[i]})") {
+                                openshift.withCluster() {
+        echo "==============================="
+        echo "Tag new image into staging"
+        echo "==============================="
+
+        openshift.tag("ausnimbus-ci/s2i-php:${versions[i]}", "ausnimbus/s2i-php:${versions[i]}")
+}
+
+                        }
                 } finally {
                         openshift.withCluster() {
                                 echo "Deleting test resources php-ex"
