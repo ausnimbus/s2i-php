@@ -69,7 +69,7 @@ yourself:
 * **HTTPD_MAX_REQUEST_WORKERS**
   * The [MaxRequestWorkers](https://httpd.apache.org/docs/2.4/mod/mpm_common.html#maxrequestworkers)
     directive sets the limit on the number of simultaneous requests that will be served.
-  * Default: `TOTAL_MEMORY / 15MB`. The 15MB is an average size of a single httpd process.
+  * Default: `PHPFPMD_MAX_CHILDREN / 2`
 * **HTTPD_START_SERVERS**
   * The [StartServers](https://httpd.apache.org/docs/2.4/mod/mpm_common.html#startservers)
     directive sets the number of child server processes created on startup.
@@ -79,7 +79,7 @@ You can also override the PHP-fpm settings
 * **PHPFPMD_MAX_CHILDREN**
   * The PHPFPMD_MAX_CHILDREN directive sets the limit of the number of simultaneous PHP-fpm
     workers that should run.
-    * Default: `TOTAL_MEMORY / 64MB`. The 64MB is an average size of a single PHP-fpm process.
+    * Default: `TOTAL_MEMORY / 128MB`. The 128MB is the default php max memory limit
 
 You can use a custom composer repository mirror URL to download packages instead of the default 'packagist.org':
 
