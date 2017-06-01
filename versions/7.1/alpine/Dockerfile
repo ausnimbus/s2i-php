@@ -3,26 +3,26 @@
 #
 # DO NOT EDIT IT DIRECTLY.
 #
-FROM php:5.6
+FROM php:7.1-alpine
 # <pre>
 
 MAINTAINER AusNimbus <support@ausnimbus.com.au>
 
-LABEL summary="Platform for running PHP 5.6 applications" \
+LABEL summary="Platform for running PHP 7.1 applications" \
       maintainer="AusNimbus <support@ausnimbus.com.au>" \
-      io.k8s.description="Platform for running PHP 5.6 applications" \
-      io.k8s.display-name="PHP 5.6"
+      io.k8s.description="Platform for running PHP 7.1 applications" \
+      io.k8s.display-name="PHP 7.1"
 
-ENV USER=999 \
+ENV USER=100 \
     HOME=/opt/app-root/src
 
 USER 0
 
-RUN apt-get update && apt-get install -y \
-      rsync nano vim && \
-    mkdir -p $HOME && \
-    useradd -u 1001 -g 0 -d ${HOME} -s /sbin/nologin \
-      -c "Default Application User" default && \
+RUN apk --no-cache add bash rsync && \
+    mkdir -p ${HOME}/.pki/nssdb && \
+    chown -R 1001:0 ${HOME}/.pki && \
+    adduser -S -u 1001 -G root -h ${HOME} -s /sbin/nologin \
+      -g "Default Application User" default && \
     chown -R 1001:0 /opt/app-root
 
 # Copy common executable utilities.
@@ -35,7 +35,7 @@ COPY ./contrib/ /opt/app-root
 # </pre>
 # <s2i>
 
-RUN apt-get install -y git
+RUN apk --no-cache add git && rm -rf /var/cache/apk/*
 
 ENV STI_SCRIPTS_PATH=/usr/libexec/s2i
 
@@ -61,37 +61,36 @@ RUN set -xe; \
       apache2-dev \
       gcc \
       autoconf \
-      libcurl4-openssl-dev \
+      curl-dev \
       libedit-dev \
-      libssl-dev" && \
+      openssl-dev" && \
     phpDeps=" \
       gettext \
-      libc6 \
-      libicu-dev \
+      gettext-dev \
+      libc6-compat \
+      icu \
+      icu-dev \
       libxml2-dev \
-      zlib1g-dev \
-      libpq5 \
-      libpq-dev \
-      libmysqlclient18 \
-      libmysqlclient-dev \
-      libmemcached-dev \
-      libsqlite3-dev \
-      libmcrypt4 \
+      zlib-dev \
+      libpq \
+      mariadb-libs \
+      mariadb-dev \
+      memcached-dev \
+      sqlite-libs \
+      sqlite-dev \
+      libmcrypt \
       libmcrypt-dev \
-      libfreetype6 \
-      libfreetype6-dev \
-      libjpeg62-turbo \
-      libjpeg62-turbo-dev \
-      libpng12-0 \
-      libpng12-dev \
-      libjpeg-dev \
-      libpng3 \
-      libpng++-dev \
-      libgd-dev \
-      libltdl-dev \
+      freetype-dev \
+      freetype \
+      jpeg-dev \
+      libjpeg-turbo \
+      libjpeg-turbo-dev \
+      libpng \
+      libpng-dev \
+      libgd \
+      libltdl \
       unzip" && \
-    apt-get update && apt-get install -y apache2 $phpDeps $buildDeps --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* && \
+    apk add --no-cache apache2 $phpDeps $buildDep && \
     docker-php-source extract && \
       cd /usr/src/php && \
       ./configure \
@@ -148,23 +147,25 @@ RUN set -xe; \
         --with-png-dir=/usr/include && \
     docker-php-ext-install gd && \
     docker-php-source delete && \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
+    apk delete $buildDeps
 
-RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
+RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
     sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
-    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/apache2.conf && \
+    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/httpd.conf && \
     rm -f /etc/apache2/sites-enabled/* && \
     rm -f /etc/apache2/conf-enabled/* && \
     rm -f /etc/apache2/mods-enabled/mpm_event* && \
     mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
-    chown -R 999:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
+    chown -R 100:0 /run/apache2 /lock/apache2 /tmp/sessions && \
     chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
 
 # </template>
 # <post>
 
-# Standardize on UID $USER
-RUN usermod -o -u $USER default
+# Standardize on UID $USER (alpine:3.4 does not have the shadow package)
+RUN apk add shadow --no-cache --repository http://rsync.alpinelinux.org/alpine/latest-stable/community/ && \
+    usermod -o -u $USER default && \
+    apk del shadow
 
 # Drop the root user and make the content of /opt/app-root owned by user default
 RUN chown -R $USER:0 /opt/app-root && chmod -R ug+rwx /opt/app-root

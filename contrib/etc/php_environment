@@ -1,21 +1,84 @@
 #!/bin/bash
 source cgroup-limits
 
-export DOCUMENTROOT=${DOCUMENTROOT:-/}
+# Dynamic memory calculation
+if [ -n "${NO_MEMORY_LIMIT:-}" -o -z "${MEMORY_LIMIT_IN_BYTES:-}" ]; then
+  echo "-> No cgroup limits set"
+  max_apache_workers=32
+  php_memory_limit=512
+  opcache_memory_limit=128
+else
+  echo "-> Cgroups memory limits are set"
+  max_apache_workers=$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))
+  [[ $max_apache_workers -le 1 ]] && max_apache_workers=2
 
-# Default php.ini configuration values, all taken
-# from php defaults.
-export ERROR_REPORTING=${ERROR_REPORTING:-E_ALL & ~E_NOTICE}
-export DISPLAY_ERRORS=${DISPLAY_ERRORS:-ON}
-export DISPLAY_STARTUP_ERRORS=${DISPLAY_STARTUP_ERRORS:-OFF}
-export TRACK_ERRORS=${TRACK_ERRORS:-OFF}
-export HTML_ERRORS=${HTML_ERRORS:-ON}
+  if [ $MEMORY_LIMIT >= 4096 ]; then
+    php_memory_limit=512
+    opcache_memory_limit=128
+  elif [ $MEMORY_LIMIT >= 2048 ]; then
+    php_memory_limit=368
+    opcache_memory_limit=128
+  elif [ $MEMORY_LIMIT >= 1024 ]; then
+    php_memory_limit=256
+    opcache_memory_limit=128
+  elif [ $MEMORY_LIMIT >= 512]; then
+    php_memory_limit=128
+    opcache_memory_limit=128
+  else
+    php_memory_limit=128
+    opcache_memory_limit=64
+  fi
+fi
+
+export PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-$php_memory_limit}
+export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-$opcache_memory_limit}
+
+export HTTPD_MAX_REQUEST_WORKERS=${HTTPD_MAX_REQUEST_WORKERS:-$max_apache_workers}
+apache_start_servers=$((HTTPD_MAX_REQUEST_WORKERS/4))
+[[ $apache_start_servers -le 1 ]] && apache_start_servers=1
+
+export HTTPD_START_SERVERS=${HTTPD_START_SERVERS:-$apache_start_servers}
+export HTTPD_MAX_SPARE_SERVERS=${HTTPD_MAX_SPARE_SERVERS:-$((HTTPD_START_SERVERS*2))}
+
+# Apache configuration
+export DOCUMENTROOT=${DOCUMENTROOT:-/}
+if [ -d /usr/lib/apache2/ ]; then
+  export APACHE_MODULES_DIR=/usr/lib/apache2/modules/
+else
+  export APACHE_MODULES_DIR="modules/"
+fi
+
+if [[ -n $DEBUG ]]; then
+  export ERROR_REPORTING=${ERROR_REPORTING:-E_ALL & ~E_NOTICE}
+  export DISPLAY_ERRORS=${DISPLAY_ERRORS:-ON}
+  export DISPLAY_STARTUP_ERRORS=${DISPLAY_STARTUP_ERRORS:-ON}
+  export TRACK_ERRORS=${TRACK_ERRORS:-ON}
+  export HTML_ERRORS=${HTML_ERRORS:-ON}
+  export OPCACHE_REVALIDATE_FREQ=${OPCACHE_REVALIDATE_FREQ:-0}
+else
+  export ERROR_REPORTING=${ERROR_REPORTING:-E_ALL & ~E_NOTICE}
+  export DISPLAY_ERRORS=${DISPLAY_ERRORS:-OFF}
+  export DISPLAY_STARTUP_ERRORS=${DISPLAY_STARTUP_ERRORS:-OFF}
+  export TRACK_ERRORS=${TRACK_ERRORS:-OFF}
+  export HTML_ERRORS=${HTML_ERRORS:-OFF}
+  export OPCACHE_REVALIDATE_FREQ=${OPCACHE_REVALIDATE_FREQ:-2}
+fi
+
 export INCLUDE_PATH=${INCLUDE_PATH:-.:/opt/app-root/src}
 export SESSION_PATH=${SESSION_PATH:-/tmp/sessions}
 export SHORT_OPEN_TAG=${SHORT_OPEN_TAG:-OFF}
-# TODO should be dynamically calculated based on container memory limit/16
-export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-128}
-export OPCACHE_REVALIDATE_FREQ=${OPCACHE_REVALIDATE_FREQ:-2}
-
 export PHPRC=${PHPRC:-/usr/local/etc/php/php.ini}
 export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-/usr/local/etc/php/conf.d/}
+
+# Process templates
+envsubst < /opt/app-root/etc/php.ini.template > /usr/local/etc/php/php.ini
+fix-permissions /usr/local/etc/php/php.ini
+
+envsubst < /opt/app-root/etc/php.d/10-opcache.ini.template > /usr/local/etc/php/conf.d/10-opcache.ini
+fix-permissions /usr/local/etc/php/conf.d/10-opcache.ini
+
+envsubst < /opt/app-root/etc/conf.d/00-apache.conf.template > /opt/app-root/etc/conf.d/00-apache.conf
+fix-permissions /opt/app-root/etc/conf.d/00-apache.conf
+
+envsubst < /opt/app-root/etc/conf.d/50-mpm-tuning.conf.template > /opt/app-root/etc/conf.d/50-mpm-tuning.conf
+fix-permissions /opt/app-root/etc/conf.d/50-mpm-tuning.conf

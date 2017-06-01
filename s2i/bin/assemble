@@ -30,9 +30,11 @@ if [ -f composer.json ]; then
   fi
 
   # Install App dependencies using Composer
-  # TODO add a development environment flag
-  #./composer.phar install --no-interaction --no-ansi --no-dev --optimize-autoloader
-  ./composer.phar install --no-interaction --no-ansi --optimize-autoloader
+  if [[ -n $DEBUG ]]; then
+    ./composer.phar install --no-interaction --no-ansi --dev --optimize-autoloader
+  else
+    ./composer.phar install --no-interaction --no-ansi --no-dev --optimize-autoloader
+  fi
 
   if [ ! -f composer.lock ]; then
     echo -e "\nConsider adding a 'composer.lock' file into your source repository.\n"

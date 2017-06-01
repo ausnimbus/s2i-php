@@ -3,7 +3,7 @@
 #
 # DO NOT EDIT IT DIRECTLY.
 #
-FROM php:7.0-fpm-alpine
+FROM php:7.0
 # <pre>
 
 MAINTAINER AusNimbus <support@ausnimbus.com.au>
@@ -13,15 +13,16 @@ LABEL summary="Platform for running PHP 7.0 applications" \
       io.k8s.description="Platform for running PHP 7.0 applications" \
       io.k8s.display-name="PHP 7.0"
 
-ENV HOME=/opt/app-root/src
+ENV USER=999 \
+    HOME=/opt/app-root/src
 
 USER 0
 
-RUN apk --no-cache add bash rsync && \
-    mkdir -p ${HOME}/.pki/nssdb && \
-    chown -R 1001:0 ${HOME}/.pki && \
-    adduser -S -u 1001 -G root -h ${HOME} -s /sbin/nologin \
-      -g "Default Application User" default && \
+RUN apt-get update && apt-get install -y \
+      rsync nano vim && \
+    mkdir -p $HOME && \
+    useradd -u 1001 -g 0 -d ${HOME} -s /sbin/nologin \
+      -c "Default Application User" default && \
     chown -R 1001:0 /opt/app-root
 
 # Copy common executable utilities.
@@ -34,7 +35,7 @@ COPY ./contrib/ /opt/app-root
 # </pre>
 # <s2i>
 
-RUN apk --no-cache add git && rm -rf /var/cache/apk/*
+RUN apt-get install -y git
 
 ENV STI_SCRIPTS_PATH=/usr/libexec/s2i
 
@@ -56,74 +57,118 @@ CMD /usr/bin/base-usage
 # <template>
 
 RUN set -xe; \
-      apk add --no-cache --virtual .php-builddeps \
-        zlib-dev \
-        freetype-dev \
-        jpeg-dev \
-        libjpeg-turbo-dev \
-        postgresql-dev \
-        sqlite-dev \
-        libltdl \
-        libmcrypt \
-        libmcrypt-dev \
-        libpng \
-        libpng-dev \
-        icu \
-        icu-dev \
-        gettext-dev \
-        libxml2-dev \
-        freetype-dev \
-        unzip \
-        libc6-compat \
-        gcc \
-        autoconf && \
-      docker-php-ext-configure gd --with-freetype-dir=/usr/include/  --with-jpeg-dir=/usr/include/ && \
-      docker-php-ext-install \
-        bcmath \
-        ctype \
-        dom \
-        fileinfo \
-        gd \
-        gettext \
-        intl \
-        json \
-        mbstring \
-        mcrypt \
-        mysqli \
-        opcache \
-        pcntl \
-        pdo \
-        pdo_sqlite \
-        pdo_mysql \
-        pdo_pgsql \
-        phar \
-        simplexml \
-        soap \
-        xml \
-        zip && \
-    	apk add --no-cache apache2-proxy sed gettext && \
-      rm -rf /tmp/* && \
-      rm -rf /var/cache/apk/*
+    buildDeps=" \
+      apache2-dev \
+      gcc \
+      autoconf \
+      libcurl4-openssl-dev \
+      libedit-dev \
+      libssl-dev" && \
+    phpDeps=" \
+      gettext \
+      libc6 \
+      libicu-dev \
+      libxml2-dev \
+      zlib1g-dev \
+      libpq5 \
+      libpq-dev \
+      libmysqlclient18 \
+      libmysqlclient-dev \
+      libmemcached-dev \
+      libsqlite3-dev \
+      libmcrypt4 \
+      libmcrypt-dev \
+      libfreetype6 \
+      libfreetype6-dev \
+      libjpeg62-turbo \
+      libjpeg62-turbo-dev \
+      libpng12-0 \
+      libpng12-dev \
+      libjpeg-dev \
+      libpng3 \
+      libpng++-dev \
+      libgd-dev \
+      libltdl-dev \
+      unzip" && \
+    apt-get update && apt-get install -y apache2 $phpDeps $buildDeps --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    docker-php-source extract && \
+      cd /usr/src/php && \
+      ./configure \
+        --build=x86_64-linux-gnu \
+        --with-config-file-path=/usr/local/etc/php \
+        --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
+        --disable-cgi \
+        --enable-ftp \
+        --enable-mbstring \
+        --enable-mysqlnd \
+        --with-curl \
+        --with-libedit \
+        --with-openssl \
+        --with-zlib \
+        --with-pcre-regex=/usr \
+        --with-libdir=lib/x86_64-linux-gnu \
+        build_alias=x86_64-linux-gnu \
+        CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
+        LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
+        CPPFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
+        --with-apxs2 && \
+      make -j "$(nproc)" && \
+      make install && \
+      { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } && \
+      make clean && \
+    docker-php-ext-install \
+      bcmath \
+      ctype \
+      dom \
+      fileinfo \
+      gd \
+      gettext \
+      intl \
+      json \
+      mbstring \
+      mcrypt \
+      mysqli \
+      opcache \
+      pcntl \
+      pdo \
+      pgsql \
+      pdo_sqlite \
+      pdo_mysql \
+      pdo_pgsql \
+      phar \
+      simplexml \
+      soap \
+      xml \
+      zip && \
+    docker-php-ext-configure gd \
+        --enable-gd-native-ttf \
+        --with-freetype-dir=/usr/include/ \
+        --with-jpeg-dir=/usr/include/ \
+        --with-png-dir=/usr/include && \
+    docker-php-ext-install gd && \
+    docker-php-source delete && \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
 
-RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
-    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/httpd.conf && \
-    rm -f /usr/local/etc/php-fpm.d/zz-docker.conf && \
-    mkdir /run/apache2 /tmp/sessions /run/php-fpm && \
-    chown -R default:0 /opt/app-root /tmp/sessions /run/apache2 /run/php-fpm && \
-    chmod -R ug+rwx /tmp/sessions /run/apache2 /run/php-fpm \
-                   /usr/local/etc/php /usr/local/etc/php-fpm.d/
+RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
+    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
+    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/apache2.conf && \
+    rm -f /etc/apache2/sites-enabled/* && \
+    rm -f /etc/apache2/conf-enabled/* && \
+    rm -f /etc/apache2/mods-enabled/mpm_event* && \
+    mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
+    chown -R 999:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
+    chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
 
 # </template>
 # <post>
 
-# Standardize on UID 100 (alpine:3.4 does not have the shadow package)
-RUN apk add shadow --no-cache --repository http://rsync.alpinelinux.org/alpine/latest-stable/community/ && \
-    usermod -o -u 100 default && \
-    apk del shadow
+# Standardize on UID $USER
+RUN usermod -o -u $USER default
 
 # Drop the root user and make the content of /opt/app-root owned by user default
-RUN chown -R 100:0 /opt/app-root && chmod -R ug+rwx /opt/app-root
-USER 100
+RUN chown -R $USER:0 /opt/app-root && chmod -R ug+rwx /opt/app-root
+USER $USER
 
 ENTRYPOINT ["container-entrypoint"]
 
