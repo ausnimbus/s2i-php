@@ -27,7 +27,7 @@ node {
                                                                         "name" : "${versions[i]}-alpine",
                                                                         "from" : [
                                                                                 "kind" : "DockerImage",
-                                                                                "name" : "php:${versions[i]}-fpm-alpine",
+                                                                                "name" : "php:${versions[i]}-fpm--alpine",
                                                                         ],
                                                                         "referencePolicy" : [
                                                                                 "type" : "Source"
@@ -62,7 +62,7 @@ node {
                                         "output" : [
                                                 "to" : [
                                                         "kind" : "ImageStreamTag",
-                                                        "name" : "s2i-php:${versions[i]}"
+                                                        "name" : "s2i-php:${versions[i]}-alpine"
                                                 ]
                                         ],
                                         "runPolicy" : "Serial",
@@ -155,7 +155,7 @@ node {
         echo "Tag new image into staging"
         echo "==============================="
 
-        openshift.tag("ausnimbus-ci/s2i-php:${versions[i]}", "ausnimbus/s2i-php:${versions[i]}")
+        openshift.tag("ausnimbus-ci/s2i-php:${versions[i]}-alpine", "ausnimbus/s2i-php:${versions[i]}-alpine")
 }
 
                         }
