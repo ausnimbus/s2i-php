@@ -1,8 +1,8 @@
 #!/bin/bash
 source cgroup-limits
 
+set -e
 set -o pipefail
-set -eu
 # Include hidden files
 shopt -s dotglob
 
