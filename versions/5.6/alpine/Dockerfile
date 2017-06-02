@@ -73,6 +73,7 @@ RUN set -xe; \
       libxml2-dev \
       zlib-dev \
       libpq \
+      postgresql-dev \
       mariadb-libs \
       mariadb-dev \
       memcached-dev \
@@ -80,8 +81,8 @@ RUN set -xe; \
       sqlite-dev \
       libmcrypt \
       libmcrypt-dev \
-      freetype-dev \
       freetype \
+      freetype-dev \
       jpeg-dev \
       libjpeg-turbo \
       libjpeg-turbo-dev \

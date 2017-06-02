@@ -66,26 +66,21 @@ RUN set -xe; \
       libssl-dev" && \
     phpDeps=" \
       gettext \
-      libc6 \
       libicu-dev \
       libxml2-dev \
       zlib1g-dev \
-      libpq5 \
       libpq-dev \
       libmysqlclient18 \
       libmysqlclient-dev \
       libmemcached-dev \
       libsqlite3-dev \
-      libmcrypt4 \
       libmcrypt-dev \
       libfreetype6 \
       libfreetype6-dev \
       libjpeg62-turbo \
       libjpeg62-turbo-dev \
-      libpng12-0 \
       libpng12-dev \
       libjpeg-dev \
-      libpng3 \
       libpng++-dev \
       libgd-dev \
       libltdl-dev \
