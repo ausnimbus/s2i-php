@@ -92,7 +92,8 @@ RUN set -xe; \
       libltdl \
       unzip" && \
     apk add --no-cache apache2 $phpDeps $buildDep && \
-    docker-php-source extract && \
+    echo "Building PHP, this will take some time.. (output suppressed)" && \
+    (docker-php-source extract && \
       cd /usr/src/php && \
       ./configure \
         --build=x86_64-linux-gnu \
@@ -112,7 +113,8 @@ RUN set -xe; \
         CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
         LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
         CPPFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
-        --with-apxs2 && \
+        --with-apxs2 \
+        --enable-maintainer-zts && \
       make -j "$(nproc)" && \
       make install && \
       { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } && \
@@ -147,7 +149,7 @@ RUN set -xe; \
         --with-jpeg-dir=/usr/include/ \
         --with-png-dir=/usr/include && \
     docker-php-ext-install gd && \
-    docker-php-source delete && \
+    docker-php-source delete) > /dev/null 2>&1 && \
     apk delete $buildDeps
 
 RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
