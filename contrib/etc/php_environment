@@ -57,7 +57,9 @@ else
   export APACHE_MODULES_DIR="modules/"
 fi
 
-if [[ -n $DEBUG ]]; then
+export DEBUG=${DEBUG:-"FALSE"}
+if [[ $DEBUG == "TRUE" ]]; then
+  echo "-> DEBUG mode set to TRUE"
   export ERROR_REPORTING=${ERROR_REPORTING:-E_ALL & ~E_NOTICE}
   export DISPLAY_ERRORS=${DISPLAY_ERRORS:-ON}
   export DISPLAY_STARTUP_ERRORS=${DISPLAY_STARTUP_ERRORS:-ON}
