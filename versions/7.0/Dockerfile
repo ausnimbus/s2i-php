@@ -115,7 +115,7 @@ RUN set -xe; \
       make install && \
       { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } && \
       make clean && \
-    docker-php-ext-install \
+    docker-php-ext-install -j$(nproc) \
       bcmath \
       ctype \
       dom \
@@ -144,7 +144,7 @@ RUN set -xe; \
         --with-freetype-dir=/usr/include/ \
         --with-jpeg-dir=/usr/include/ \
         --with-png-dir=/usr/include && \
-    docker-php-ext-install gd && \
+    docker-php-ext-install -j$(nproc) gd && \
     docker-php-source delete) > /dev/null 2>&1 && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
 
@@ -155,7 +155,7 @@ RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
     rm -f /etc/apache2/conf-enabled/* && \
     rm -f /etc/apache2/mods-enabled/mpm_event* && \
     mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
-    chown -R 999:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
+    chown -R $USER:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
     chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
 
 # </template>

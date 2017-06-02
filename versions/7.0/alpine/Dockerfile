@@ -59,12 +59,13 @@ CMD /usr/bin/base-usage
 RUN set -xe; \
     buildDeps=" \
       apache2-dev \
-      gcc \
-      autoconf \
+      build-base \
+      pcre-dev \
       curl-dev \
       libedit-dev \
       openssl-dev" && \
     phpDeps=" \
+      coreutils \
       gettext \
       gettext-dev \
       libc6-compat \
@@ -91,12 +92,12 @@ RUN set -xe; \
       gd-dev \
       libltdl \
       unzip" && \
-    apk add --no-cache apache2 $phpDeps $buildDep && \
+    apk add --no-cache apache2 $phpDeps $buildDeps && \
     echo "Building PHP, this will take some time.. (output suppressed)" && \
     (docker-php-source extract && \
       cd /usr/src/php && \
       ./configure \
-        --build=x86_64-linux-gnu \
+        --build=x86_64-linux-musl \
         --with-config-file-path=/usr/local/etc/php \
         --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
         --disable-cgi \
@@ -108,8 +109,7 @@ RUN set -xe; \
         --with-openssl \
         --with-zlib \
         --with-pcre-regex=/usr \
-        --with-libdir=lib/x86_64-linux-gnu \
-        build_alias=x86_64-linux-gnu \
+        build_alias=x86_64-linux-musl \
         CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
         LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
         CPPFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
@@ -119,7 +119,7 @@ RUN set -xe; \
       make install && \
       { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } && \
       make clean && \
-    docker-php-ext-install \
+    docker-php-ext-install -j$(nproc) \
       bcmath \
       ctype \
       dom \
@@ -148,9 +148,9 @@ RUN set -xe; \
         --with-freetype-dir=/usr/include/ \
         --with-jpeg-dir=/usr/include/ \
         --with-png-dir=/usr/include && \
-    docker-php-ext-install gd && \
+    docker-php-ext-install -j$(nproc) gd && \
     docker-php-source delete) > /dev/null 2>&1 && \
-    apk delete $buildDeps
+    apk del $buildDeps
 
 RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
     sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
@@ -159,7 +159,7 @@ RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
     rm -f /etc/apache2/conf-enabled/* && \
     rm -f /etc/apache2/mods-enabled/mpm_event* && \
     mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
-    chown -R 100:0 /run/apache2 /lock/apache2 /tmp/sessions && \
+    chown -R $USER:0 /run/apache2 /lock/apache2 /tmp/sessions && \
     chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
 
 # </template>
