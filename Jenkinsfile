@@ -11,10 +11,11 @@ node {
                 for (int i = 0; i < versions.length; i++) {
 
                   if (variants[v] == "default") {
-                    def variant[v] = ""
-                    def tag = versions[i]
+                    variant = ""
+                    tag = versions[i]
                   } else {
-                    def tag = versions[i] + "-" + variants[v]
+                    variant = variants[v]
+                    tag = versions[i] + "-" + variant
                   }
 
 
@@ -91,7 +92,7 @@ node {
                                         ],
                                         "strategy" : [
                                                 "dockerStrategy" : [
-                                                        "dockerfilePath" : "versions/${versions[i]}/${variant[v]}/Dockerfile",
+                                                        "dockerfilePath" : "versions/${versions[i]}/${variant}/Dockerfile",
                                                         "from" : [
                                                                 "kind" : "ImageStreamTag",
                                                                 "name" : "php:${tag}"
