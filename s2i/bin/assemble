@@ -1,7 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash
 source /opt/app-root/etc/php_environment
-
-shopt -s dotglob
 
 if [ -d /tmp/artifacts/ ]; then
     echo "---> Restoring build artifacts..."

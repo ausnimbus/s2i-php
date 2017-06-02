@@ -1,7 +1,16 @@
 #!/bin/bash
 source cgroup-limits
 
-# Dynamic memory calculation
+set -o pipefail
+set -eu
+# Include hidden files
+shopt -s dotglob
+
+# Set the umask to be '002' so that any files/directories created from
+# this point are group writable.
+umask 002
+
+# Calculate based on memory limits
 if [ -n "${NO_MEMORY_LIMIT:-}" -o -z "${MEMORY_LIMIT_IN_BYTES:-}" ]; then
   echo "-> No cgroup limits set"
   max_apache_workers=32
@@ -72,13 +81,6 @@ export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-/usr/local/etc/php/conf.d/}
 
 # Process templates
 envsubst < /opt/app-root/etc/php.ini.template > /usr/local/etc/php/php.ini
-fix-permissions /usr/local/etc/php/php.ini
-
 envsubst < /opt/app-root/etc/php.d/10-opcache.ini.template > /usr/local/etc/php/conf.d/10-opcache.ini
-fix-permissions /usr/local/etc/php/conf.d/10-opcache.ini
-
 envsubst < /opt/app-root/etc/conf.d/00-apache.conf.template > /opt/app-root/etc/conf.d/00-apache.conf
-fix-permissions /opt/app-root/etc/conf.d/00-apache.conf
-
 envsubst < /opt/app-root/etc/conf.d/50-mpm-tuning.conf.template > /opt/app-root/etc/conf.d/50-mpm-tuning.conf
-fix-permissions /opt/app-root/etc/conf.d/50-mpm-tuning.conf
