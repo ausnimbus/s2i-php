@@ -11,6 +11,7 @@ RUN set -xe; \
       libicu-dev \
       libxml2-dev \
       zlib1g-dev \
+      libpq \
       libpq-dev \
       libmysqlclient18 \
       libmysqlclient-dev \
