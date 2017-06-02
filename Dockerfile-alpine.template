@@ -30,7 +30,7 @@ RUN set -xe; \
       libjpeg-turbo-dev \
       libpng \
       libpng-dev \
-      libgd \
+      gd-dev \
       libltdl \
       unzip" && \
     apk add --no-cache apache2 $phpDeps $buildDep && \
