@@ -16,7 +16,7 @@ if [ -f composer.json ]; then
   curl https://getcomposer.org/installer | php
 
   # Enable Prestissimo (composer plugin)
-  if [ -n "$PRESTISSIMO" ]; then
+  if [ $PRESTISSIMO == "TRUE" ]; then
     echo "Enabling Prestissimo (composer plugin)"
     ./composer.phar global require hirak/prestissimo
   fi
@@ -28,7 +28,7 @@ if [ -f composer.json ]; then
   fi
 
   # Install App dependencies using Composer
-  if [[ -n $DEBUG ]]; then
+  if [ $DEBUG == "TRUE" ]; then
     ./composer.phar install --no-interaction --no-ansi --dev --optimize-autoloader
   else
     ./composer.phar install --no-interaction --no-ansi --no-dev --optimize-autoloader
