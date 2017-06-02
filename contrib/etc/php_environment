@@ -57,7 +57,9 @@ else
   export APACHE_MODULES_DIR="modules/"
 fi
 
+export PRESTISSIMO=${PRESTISSIMO:-"FALSE"}
 export DEBUG=${DEBUG:-"FALSE"}
+
 if [[ $DEBUG == "TRUE" ]]; then
   echo "-> DEBUG mode set to TRUE"
   export ERROR_REPORTING=${ERROR_REPORTING:-E_ALL & ~E_NOTICE}

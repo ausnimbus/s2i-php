@@ -22,8 +22,8 @@ RUN set -xe; \
       sqlite-dev \
       libmcrypt \
       libmcrypt-dev \
-      freetype-dev \
       freetype \
+      freetype-dev \
       jpeg-dev \
       libjpeg-turbo \
       libjpeg-turbo-dev \
