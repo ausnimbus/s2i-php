@@ -1,7 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash
 source /opt/app-root/etc/php_environment
-
-shopt -s dotglob
 
 if [ -d /tmp/artifacts/ ]; then
     echo "---> Restoring build artifacts..."
@@ -18,21 +16,23 @@ if [ -f composer.json ]; then
   curl https://getcomposer.org/installer | php
 
   # Enable Prestissimo (composer plugin)
-  if [ -n "$PRESTISSIMO" ]; then
+  if [ $PRESTISSIMO == "TRUE" ]; then
     echo "Enabling Prestissimo (composer plugin)"
     ./composer.phar global require hirak/prestissimo
   fi
 
   # Change the repo mirror if provided
-  if [ -n "$COMPOSER_MIRROR" ]; then
+  if [[ ${COMPOSER_MIRROR:+1} ]]; then
     echo "Configuring composer mirror $COMPOSER_MIRROR"
     ./composer.phar config -g repositories.packagist composer $COMPOSER_MIRROR
   fi
 
   # Install App dependencies using Composer
-  # TODO add a development environment flag
-  #./composer.phar install --no-interaction --no-ansi --no-dev --optimize-autoloader
-  ./composer.phar install --no-interaction --no-ansi --optimize-autoloader
+  if [ $DEBUG == "TRUE" ]; then
+    ./composer.phar install --no-interaction --no-ansi --dev --optimize-autoloader
+  else
+    ./composer.phar install --no-interaction --no-ansi --no-dev --optimize-autoloader
+  fi
 
   if [ ! -f composer.lock ]; then
     echo -e "\nConsider adding a 'composer.lock' file into your source repository.\n"

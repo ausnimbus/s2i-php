@@ -2,10 +2,9 @@
 
 NAME="php"
 DISPLAY_NAME="PHP"
-FROM="%NAME%:%VERSION%-fpm-%VARIANT%"
 TYPE="s2i"
-VARIANT="alpine"
-VERSIONS="5.6,7.0,7.1"
+VARIANTS=${VARIANTS:-"default,alpine"}
+VERSIONS=${VERSIONS:-"5.6,7.0,7.1"}
 
 DOCKER_PUSH=${DOCKER_PUSH:-"false"}
 

@@ -3,26 +3,26 @@
 #
 # DO NOT EDIT IT DIRECTLY.
 #
-FROM php:7.1
+FROM php:7.0-alpine
 # <pre>
 
 MAINTAINER AusNimbus <support@ausnimbus.com.au>
 
-LABEL summary="Platform for running PHP 7.1 applications" \
+LABEL summary="Platform for running PHP 7.0 applications" \
       maintainer="AusNimbus <support@ausnimbus.com.au>" \
-      io.k8s.description="Platform for running PHP 7.1 applications" \
-      io.k8s.display-name="PHP 7.1"
+      io.k8s.description="Platform for running PHP 7.0 applications" \
+      io.k8s.display-name="PHP 7.0"
 
-ENV USER=999 \
+ENV USER=100 \
     HOME=/opt/app-root/src
 
 USER 0
 
-RUN apt-get update && apt-get install -y \
-      rsync nano vim && \
-    mkdir -p $HOME && \
-    useradd -u 1001 -g 0 -d ${HOME} -s /sbin/nologin \
-      -c "Default Application User" default && \
+RUN apk --no-cache add bash rsync && \
+    mkdir -p ${HOME}/.pki/nssdb && \
+    chown -R 1001:0 ${HOME}/.pki && \
+    adduser -S -u 1001 -G root -h ${HOME} -s /sbin/nologin \
+      -g "Default Application User" default && \
     chown -R 1001:0 /opt/app-root
 
 # Copy common executable utilities.
@@ -35,7 +35,7 @@ COPY ./contrib/ /opt/app-root
 # </pre>
 # <s2i>
 
-RUN apt-get install -y git
+RUN apk --no-cache add git && rm -rf /var/cache/apk/*
 
 ENV STI_SCRIPTS_PATH=/usr/libexec/s2i
 
@@ -59,40 +59,45 @@ CMD /usr/bin/base-usage
 RUN set -xe; \
     buildDeps=" \
       apache2-dev \
-      gcc \
-      autoconf \
-      libcurl4-openssl-dev \
+      build-base \
+      pcre-dev \
+      curl-dev \
       libedit-dev \
-      libssl-dev" && \
+      openssl-dev" && \
     phpDeps=" \
+      coreutils \
       gettext \
-      libicu-dev \
+      gettext-dev \
+      libc6-compat \
+      icu \
+      icu-dev \
       libxml2-dev \
-      zlib1g-dev \
-      libpq5 \
-      libpq-dev \
-      libmysqlclient18 \
-      libmysqlclient-dev \
-      libmemcached-dev \
-      libsqlite3-dev \
+      zlib-dev \
+      libpq \
+      postgresql-dev \
+      mariadb-libs \
+      mariadb-dev \
+      memcached-dev \
+      sqlite-libs \
+      sqlite-dev \
+      libmcrypt \
       libmcrypt-dev \
-      libfreetype6 \
-      libfreetype6-dev \
-      libjpeg62-turbo \
-      libjpeg62-turbo-dev \
-      libpng12-dev \
-      libjpeg-dev \
-      libpng++-dev \
-      libgd-dev \
-      libltdl-dev \
+      freetype \
+      freetype-dev \
+      jpeg-dev \
+      libjpeg-turbo \
+      libjpeg-turbo-dev \
+      libpng \
+      libpng-dev \
+      gd-dev \
+      libltdl \
       unzip" && \
-    apt-get update && apt-get install -yq apache2 $phpDeps $buildDeps --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* && \
+    apk add --no-cache apache2 $phpDeps $buildDeps && \
     echo "Building PHP, this will take some time.. (output suppressed)" && \
     (docker-php-source extract && \
       cd /usr/src/php && \
       ./configure \
-        --build=x86_64-linux-gnu \
+        --build=x86_64-linux-musl \
         --with-config-file-path=/usr/local/etc/php \
         --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
         --disable-cgi \
@@ -104,8 +109,7 @@ RUN set -xe; \
         --with-openssl \
         --with-zlib \
         --with-pcre-regex=/usr \
-        --with-libdir=lib/x86_64-linux-gnu \
-        build_alias=x86_64-linux-gnu \
+        build_alias=x86_64-linux-musl \
         CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
         LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
         CPPFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
@@ -146,11 +150,14 @@ RUN set -xe; \
         --with-png-dir=/usr/include && \
     docker-php-ext-install -j$(nproc) gd && \
     docker-php-source delete) > /dev/null 2>&1 && \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
+    apk del $buildDeps
 
-RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
-    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
-    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/apache2.conf && \
+RUN ln -s /usr/sbin/httpd /usr/sbin/apache2 && \
+    ln -s /usr/lib/apache2/ /usr/lib/apache2/modules && \
+    sed -i 's/^LoadModule php5_module.*/LoadModule php5_module modules\/libphp5\.so/g' /etc/apache2/httpd.conf && \
+    sed -i 's/^LoadModule php7_module.*/LoadModule php7_module modules\/libphp7\.so/g' /etc/apache2/httpd.conf && \
+    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
+    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/httpd.conf && \
     rm -f /etc/apache2/sites-enabled/* && \
     rm -f /etc/apache2/conf-enabled/* && \
     rm -f /etc/apache2/mods-enabled/mpm_event* && \
@@ -161,8 +168,10 @@ RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
 # </template>
 # <post>
 
-# Standardize on UID $USER
-RUN usermod -o -u $USER default
+# Standardize on UID $USER (alpine:3.4 does not have the shadow package)
+RUN apk add shadow --no-cache --repository http://rsync.alpinelinux.org/alpine/latest-stable/community/ && \
+    usermod -o -u $USER default && \
+    apk del shadow
 
 # Drop the root user and make the content of /opt/app-root owned by user default
 RUN chown -R $USER:0 /opt/app-root && chmod -R ug+rwx /opt/app-root

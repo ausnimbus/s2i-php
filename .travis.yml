@@ -1,6 +1,12 @@
 sudo: required
-services:
-- docker
+matrix:
+  include:
+  - services:
+    - docker
+    env: VARIANTS=default
+  - services:
+    - docker
+    env: VARIANTS=alpine
 before_install:
 # Install s2i
 - |

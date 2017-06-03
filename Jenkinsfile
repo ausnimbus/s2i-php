@@ -4,11 +4,24 @@
 * DO NOT EDIT IT DIRECTLY.
 */
 node {
-        def versions = "5.6,7.0,7.1".split(',');
-        for (int i = 0; i < versions.length; i++) {
-                try {
-                        stage("Build (PHP ${versions[i]})") {
-                                openshift.withCluster() {
+        def variants = "default,alpine".split(',');
+        for (int v = 0; v < variants.length; v++) {
+
+                def versions = "5.6,7.0,7.1".split(',');
+                for (int i = 0; i < versions.length; i++) {
+
+                  if (variants[v] == "default") {
+                    variant = ""
+                    tag = versions[i]
+                  } else {
+                    variant = variants[v]
+                    tag = versions[i] + "-" + variant
+                  }
+
+
+                        try {
+                                stage("Build (PHP-${tag})") {
+                                        openshift.withCluster() {
         openshift.apply([
                                 "apiVersion" : "v1",
                                 "items" : [
@@ -24,10 +37,10 @@ node {
                                                 "spec" : [
                                                         "tags" : [
                                                                 [
-                                                                        "name" : "${versions[i]}-alpine",
+                                                                        "name" : "${tag}",
                                                                         "from" : [
                                                                                 "kind" : "DockerImage",
-                                                                                "name" : "php:${versions[i]}-fpm--alpine",
+                                                                                "name" : "php:${tag}",
                                                                         ],
                                                                         "referencePolicy" : [
                                                                                 "type" : "Source"
@@ -53,7 +66,7 @@ node {
                                 "apiVersion" : "v1",
                                 "kind" : "BuildConfig",
                                 "metadata" : [
-                                        "name" : "s2i-php-${versions[i]}",
+                                        "name" : "s2i-php-${tag}",
                                         "labels" : [
                                                 "builder" : "s2i-php"
                                         ]
@@ -62,7 +75,7 @@ node {
                                         "output" : [
                                                 "to" : [
                                                         "kind" : "ImageStreamTag",
-                                                        "name" : "s2i-php:${versions[i]}-alpine"
+                                                        "name" : "s2i-php:${tag}"
                                                 ]
                                         ],
                                         "runPolicy" : "Serial",
@@ -79,27 +92,27 @@ node {
                                         ],
                                         "strategy" : [
                                                 "dockerStrategy" : [
-                                                        "dockerfilePath" : "versions/${versions[i]}/Dockerfile",
+                                                        "dockerfilePath" : "versions/${versions[i]}/${variant}/Dockerfile",
                                                         "from" : [
                                                                 "kind" : "ImageStreamTag",
-                                                                "name" : "php:${versions[i]}-alpine"
+                                                                "name" : "php:${tag}"
                                                         ]
                                                 ],
                                                 "type" : "Docker"
                                         ]
                                 ]
                         ])
-        echo "Created s2i-php:${versions[i]} objects"
+        echo "Created s2i-php:${tag} objects"
         /**
         * TODO: Replace the sleep with import-image
-        * openshift.importImage("php:${versions[i]}-alpine")
+        * openshift.importImage("php:${tag}")
         */
         sleep 60
 
         echo "==============================="
-        echo "Starting build s2i-php-${versions[i]}"
+        echo "Starting build s2i-php-${tag}"
         echo "==============================="
-        def builds = openshift.startBuild("s2i-php-${versions[i]}");
+        def builds = openshift.startBuild("s2i-php-${tag}");
 
         timeout(10) {
                 builds.untilEach(1) {
@@ -109,14 +122,14 @@ node {
         echo "Finished build ${builds.names()}"
 }
 
-                        }
-                        stage("Test (PHP ${versions[i]})") {
-                                openshift.withCluster() {
+                                }
+                                stage("Test (PHP-${tag})") {
+                                        openshift.withCluster() {
         echo "==============================="
         echo "Starting test application"
         echo "==============================="
 
-        def testApp = openshift.newApp("https://github.com/ausnimbus/php-ex", "--image-stream=s2i-php:${versions[i]}", "-l app=php-ex");
+        def testApp = openshift.newApp("https://github.com/ausnimbus/php-ex", "--image-stream=s2i-php:${tag}", "-l app=php-ex");
         echo "new-app created ${testApp.count()} objects named: ${testApp.names()}"
         testApp.describe()
 
@@ -148,28 +161,29 @@ node {
         sh "curl -o /dev/null $testAppHost:$testAppPort"
 }
 
-                        }
-                        stage("Stage (PHP ${versions[i]})") {
-                                openshift.withCluster() {
+                                }
+                                stage("Stage (PHP-${tag})") {
+                                        openshift.withCluster() {
         echo "==============================="
         echo "Tag new image into staging"
         echo "==============================="
 
-        openshift.tag("ausnimbus-ci/s2i-php:${versions[i]}-alpine", "ausnimbus/s2i-php:${versions[i]}-alpine")
+        openshift.tag("ausnimbus-ci/s2i-php:${tag}", "ausnimbus/s2i-php:${tag}")
 }
 
+                                }
+                        } finally {
+                                openshift.withCluster() {
+                                        echo "Deleting test resources php-ex"
+                                        openshift.selector("dc", [app: "php-ex"]).delete()
+                                        openshift.selector("bc", [app: "php-ex"]).delete()
+                                        openshift.selector("svc", [app: "php-ex"]).delete()
+                                        openshift.selector("is", [app: "php-ex"]).delete()
+                                        openshift.selector("pods", [app: "php-ex"]).delete()
+                                        openshift.selector("routes", [app: "php-ex"]).delete()
+                                }
                         }
-                } finally {
-                        openshift.withCluster() {
-                                echo "Deleting test resources php-ex"
-                                openshift.selector("dc", [app: "php-ex"]).delete()
-                                openshift.selector("bc", [app: "php-ex"]).delete()
-                                openshift.selector("svc", [app: "php-ex"]).delete()
-                                openshift.selector("is", [app: "php-ex"]).delete()
-                                openshift.selector("pods", [app: "php-ex"]).delete()
-                                openshift.selector("routes", [app: "php-ex"]).delete()
-                        }
-                }
 
+                }
         }
 }

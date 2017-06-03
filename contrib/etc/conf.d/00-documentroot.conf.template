@@ -1,3 +1,0 @@
-DocumentRoot "/opt/app-root/src${DOCUMENTROOT}"
-DirectoryIndex disabled
-DirectoryIndex index.php index.html
