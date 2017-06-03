@@ -51,11 +51,6 @@ export HTTPD_MAX_SPARE_SERVERS=${HTTPD_MAX_SPARE_SERVERS:-$((HTTPD_START_SERVERS
 
 # Apache configuration
 export DOCUMENTROOT=${DOCUMENTROOT:-/}
-if [ -d /usr/lib/apache2/ ]; then
-  export APACHE_MODULES_DIR=/usr/lib/apache2/modules/
-else
-  export APACHE_MODULES_DIR="modules/"
-fi
 
 export PRESTISSIMO=${PRESTISSIMO:-"FALSE"}
 export DEBUG=${DEBUG:-"FALSE"}

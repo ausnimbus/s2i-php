@@ -22,6 +22,6 @@ TraceEnable Off
 ServerTokens Prod
 ServerSignature Off
 
-LoadModule mpm_prefork_module ${APACHE_MODULES_DIR}/mod_mpm_prefork.so
-LoadModule slotmem_shm_module ${APACHE_MODULES_DIR}/mod_slotmem_shm.so
-LoadModule rewrite_module ${APACHE_MODULES_DIR}/mod_rewrite.so
+LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so
+LoadModule slotmem_shm_module /usr/lib/apache2/modules/mod_slotmem_shm.so
+LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
