@@ -153,7 +153,6 @@ RUN set -xe; \
     apk del $buildDeps
 
 RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
-    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
     echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/httpd.conf && \
     rm -f /etc/apache2/sites-enabled/* && \
     rm -f /etc/apache2/conf-enabled/* && \
