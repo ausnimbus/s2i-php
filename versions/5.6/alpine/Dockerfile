@@ -152,13 +152,14 @@ RUN set -xe; \
     docker-php-source delete) > /dev/null 2>&1 && \
     apk del $buildDeps
 
-RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
+RUN ln -s /usr/sbin/httpd /usr/sbin/apache2 && \
+    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
     echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/httpd.conf && \
     rm -f /etc/apache2/sites-enabled/* && \
     rm -f /etc/apache2/conf-enabled/* && \
     rm -f /etc/apache2/mods-enabled/mpm_event* && \
     mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
-    chown -R $USER:0 /run/apache2 /lock/apache2 /tmp/sessions && \
+    chown -R $USER:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
     chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
 
 # </template>
