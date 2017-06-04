@@ -21,7 +21,7 @@ USER 0
 RUN apt-get update && apt-get install -y \
       rsync nano vim && \
     mkdir -p $HOME && \
-    useradd -u 1001 -g 0 -d ${HOME} -s /sbin/nologin \
+    useradd -u 1001 -g 0 -d $HOME -s /sbin/nologin \
       -c "Default Application User" default && \
     chown -R 1001:0 /opt/app-root
 

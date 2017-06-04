@@ -114,12 +114,13 @@ node {
         echo "==============================="
         def builds = openshift.startBuild("s2i-php-${tag}");
 
-        timeout(10) {
+        timeout(20) {
                 builds.untilEach(1) {
                         return it.object().status.phase == "Complete"
                 }
         }
         echo "Finished build ${builds.names()}"
+        builds.logs()
 }
 
                                 }

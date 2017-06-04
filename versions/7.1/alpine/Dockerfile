@@ -19,9 +19,8 @@ ENV USER=100 \
 USER 0
 
 RUN apk --no-cache add bash rsync && \
-    mkdir -p ${HOME}/.pki/nssdb && \
-    chown -R 1001:0 ${HOME}/.pki && \
-    adduser -S -u 1001 -G root -h ${HOME} -s /sbin/nologin \
+    mkdir -p $HOME && \
+    adduser -S -u 1001 -G root -h $HOME -s /sbin/nologin \
       -g "Default Application User" default && \
     chown -R 1001:0 /opt/app-root
 
