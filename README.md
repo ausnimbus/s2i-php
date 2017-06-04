@@ -1,11 +1,9 @@
-# PHP S2I Builder
+# AusNimbus Builder for PHP
 
 [![Build Status](https://travis-ci.org/ausnimbus/s2i-php.svg?branch=master)](https://travis-ci.org/ausnimbus/s2i-php)
 [![Docker Repository on Quay](https://quay.io/repository/ausnimbus/s2i-php/status "Docker Repository on Quay")](https://quay.io/repository/ausnimbus/s2i-php)
 
-This repository contains the source for the [source-to-image](https://github.com/openshift/source-to-image)
-builders used to deploy [PHP applications](https://www.ausnimbus.com.au/languages/php/)
-on [AusNimbus](https://www.ausnimbus.com.au/).
+[AusNimbus](https://www.ausnimbus.com.au/) builder for PHP provides a fast, secure and reliable [PHP hosting](https://www.ausnimbus.com.au/languages/php-hosting/) environment.
 
 ## Environment Variables
 
