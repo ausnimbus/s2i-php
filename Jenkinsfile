@@ -81,7 +81,7 @@ node {
                                         "runPolicy" : "Serial",
                                         "resources" : [
                                             "limits" : [
-                                                "memory" : "2Gi"
+                                                "memory" : "2.5Gi"
                                             ]
                                         ],
                                         "source" : [
@@ -114,7 +114,7 @@ node {
         echo "==============================="
         def builds = openshift.startBuild("s2i-php-${tag}");
 
-        timeout(20) {
+        timeout(60) {
                 builds.untilEach(1) {
                         return it.object().status.phase == "Complete"
                 }
