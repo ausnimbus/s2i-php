@@ -13,7 +13,7 @@ The following environment variables are made available:
   * Path that defines the DocumentRoot for your application (ie. /public)
   * Default: /
 * **DEBUG**
-  * Set to TRUE to enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `composer install --dev` etc.)
+  * Set to TRUE to enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `composer install --dev`, `OPCACHE_VALIDATE_TIMESTAMPS` etc.)
   * Default: FALSE
 * **PRESTISSIMO**
   * Set to TRUE to enable the [Prestissimo](https://github.com/hirak/prestissimo) parallel composer install plugin
@@ -52,8 +52,14 @@ The following environment variables set their equivalent property value in the o
 * **OPCACHE_MEMORY_CONSUMPTION**
   * The OPcache shared memory storage size in megabytes
   * Default: `$memory_limit/4MB`
+* **OPCACHE_VALIDATE_TIMESTAMPS**
+  * Whether OPCache should check for changes in files. When set to 0, you must reset the OPcache
+    manually or restart the webserver for changes to the filesystem to take effect.
+  * Default: 0
 * **OPCACHE_REVALIDATE_FREQ**
-  * How often to check script timestamps for updates, in seconds. 0 will result in OPcache checking for updates on every request.
+  * How often to check script timestamps for updates, in seconds.
+    0 will result in OPcache checking for updates on every request.
+    Ignored if OPCACHE_VALIDATE_TIMESTAMPS is 0
   * Default: 2
 
 You can also override the entire directory used to load the PHP configuration by setting:
