@@ -4,6 +4,8 @@ DocumentRoot "/opt/app-root/src${DOCUMENTROOT}"
 DirectoryIndex disabled
 DirectoryIndex index.php index.html index.htm
 
+LogFormat "{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" ausnimbus
+
 <FilesMatch \.php$>
 	SetHandler application/x-httpd-php
 </FilesMatch>
