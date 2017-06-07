@@ -26,7 +26,7 @@ else
   elif [ $MEMORY_LIMIT -gt 1024 ]; then
     php_memory_limit=256
     opcache_memory_limit=128
-  elif [ $MEMORY_LIMIT -gt 512]; then
+  elif [ $MEMORY_LIMIT -gt 512 ]; then
     php_memory_limit=128
     opcache_memory_limit=128
   else
