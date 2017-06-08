@@ -5,7 +5,6 @@
     MaxSpareServers       ${HTTPD_MAX_SPARE_SERVERS}
 
     # The MaxRequestWorkers directive sets the limit on the number of simultaneous requests that will be served.
-    # The default value, when no Cgroup limits are set is 256.
     MaxRequestWorkers     ${HTTPD_MAX_REQUEST_WORKERS}
     ServerLimit           ${HTTPD_MAX_REQUEST_WORKERS}
 
