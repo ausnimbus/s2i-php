@@ -68,19 +68,10 @@ You can also override the entire directory used to load the PHP configuration by
 * **PHP_INI_SCAN_DIR**
   * Path to scan for additional ini configuration files
 
-You can override the Apache [MPM prefork](https://httpd.apache.org/docs/2.4/mod/mpm_common.html)
-settings to increase the performance of your PHP application.
-Sane default settings are set, however you can optimize this at any time by specifying the values
-yourself:
-
-* **HTTPD_MAX_REQUEST_WORKERS**
-  * The [MaxRequestWorkers](https://httpd.apache.org/docs/2.4/mod/mpm_common.html#maxrequestworkers)
-    directive sets the limit on the number of simultaneous requests that will be served.
-  * Default: `$memory_limits/128MB`
-* **HTTPD_START_SERVERS**
-  * The [StartServers](https://httpd.apache.org/docs/2.4/mod/mpm_common.html#startservers)
-    directive sets the number of child server processes created on startup.
-  * Default: HTTPD_MAX_REQUEST_WORKERS/4
+* **WEB_CONCURRENCY**
+  * Set the number of child processes running your app, by default this is automatically
+    configured for you
+  * Default: `$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))`
 
 You can use a custom composer repository mirror URL to download packages instead of the default 'packagist.org':
 

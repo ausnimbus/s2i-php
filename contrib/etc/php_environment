@@ -34,7 +34,7 @@ export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-$opcache_memory_
 max_apache_workers=$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))
 [[ $max_apache_workers -le 1 ]] && max_apache_workers=2
 
-export HTTPD_MAX_REQUEST_WORKERS=${HTTPD_MAX_REQUEST_WORKERS:-$max_apache_workers}
+export HTTPD_MAX_REQUEST_WORKERS=${WEB_CONCURRENCY:-$max_apache_workers}
 apache_start_servers=$((HTTPD_MAX_REQUEST_WORKERS/4))
 [[ $apache_start_servers -le 1 ]] && apache_start_servers=1
 
