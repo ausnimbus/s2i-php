@@ -12,10 +12,10 @@ node {
 
                   if (variants[v] == "default") {
                     variant = ""
-                    tag = versions[i]
+                    tag = "${versions[i]}-fpm"
                   } else {
                     variant = variants[v]
-                    tag = versions[i] + "-" + variant
+                    tag = "${versions[i]}-fpm-${variant}"
                   }
 
 
@@ -40,7 +40,7 @@ node {
                                                                         "name" : "${tag}",
                                                                         "from" : [
                                                                                 "kind" : "DockerImage",
-                                                                                "name" : "php:${tag}",
+                                                                                "name" : "php:${versions[i]}-fpm",
                                                                         ],
                                                                         "referencePolicy" : [
                                                                                 "type" : "Source"

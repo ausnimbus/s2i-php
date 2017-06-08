@@ -1,0 +1,23 @@
+# define a short-hand to our fcgi proxy, for convenience
+Define ausnimbus-fcgi unix:/tmp/ausnimbus.fcgi.sock|fcgi://ausnimbus-fcgi
+
+# make sure the proxy is registered with the unix socket; we can then use just "fcgi://ausnimbus-fcgi" in proxy and rewrites directives
+# we have to do this because we can't rewrite to a UDS location and because PHP doesn't support the unix:...|fcgi://... syntax
+# this is also a lot more convenient for users
+# http://thread.gmane.org/gmane.comp.apache.devel/52892
+<Proxy "${ausnimbus-fcgi}">
+    # Noop ProxySet directive, disablereuse=On is the default value.
+    # If we don't have a ProxySet, this <Proxy> isn't handled
+    # correctly and everything breaks.
+
+    # NOTE: Setting retry to avoid cached HTTP 503
+    ProxySet disablereuse=On retry=0
+</Proxy>
+
+<Directory "/opt/app-root/src${DOCUMENTROOT}">
+  <Files *.php>
+      <If "-f %{REQUEST_FILENAME}"> # make sure the file exists so that if not, Apache will show its 404 page and not FPM
+          SetHandler proxy:fcgi://ausnimbus-fcgi
+      </If>
+  </Files>
+</Directory>

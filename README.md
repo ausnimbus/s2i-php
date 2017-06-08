@@ -12,6 +12,10 @@ The following environment variables are made available:
 * **DOCUMENTROOT**
   * Path that defines the DocumentRoot for your application (ie. /public)
   * Default: /
+* **WEB_CONCURRENCY**
+  * Set the number of child processes running your app, by default this is automatically
+    configured for you
+  * Default: `$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))`
 * **DEBUG**
   * Set to TRUE to enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `composer install --dev`, `OPCACHE_VALIDATE_TIMESTAMPS` etc.)
   * Default: FALSE
@@ -61,17 +65,6 @@ The following environment variables set their equivalent property value in the o
     0 will result in OPcache checking for updates on every request.
     Ignored if OPCACHE_VALIDATE_TIMESTAMPS is 0
   * Default: 2
-
-You can also override the entire directory used to load the PHP configuration by setting:
-* **PHPRC**
-  * Sets the path to the php.ini file
-* **PHP_INI_SCAN_DIR**
-  * Path to scan for additional ini configuration files
-
-* **WEB_CONCURRENCY**
-  * Set the number of child processes running your app, by default this is automatically
-    configured for you
-  * Default: `$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))`
 
 You can use a custom composer repository mirror URL to download packages instead of the default 'packagist.org':
 

@@ -1,0 +1,18 @@
+[global]
+
+error_log = /dev/null
+daemonize = no
+
+[www]
+
+access.log = /dev/null
+
+listen = /tmp/ausnimbus.fcgi.sock
+
+pm = static
+pm.max_children = ${WEB_CONCURRENCY}
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+
+; Ensure worker stdout and stderr are sent to the main error log.
+catch_workers_output = yes
