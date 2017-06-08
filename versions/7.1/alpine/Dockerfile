@@ -3,7 +3,7 @@
 #
 # DO NOT EDIT IT DIRECTLY.
 #
-FROM php:7.1-alpine
+FROM php:7.1-fpm-alpine
 # <pre>
 
 MAINTAINER AusNimbus <support@ausnimbus.com.au>
@@ -58,7 +58,6 @@ CMD /usr/bin/base-usage
 
 RUN set -xe; \
     buildDeps=" \
-      apache2-dev \
       build-base \
       pcre-dev \
       curl-dev \
@@ -92,33 +91,7 @@ RUN set -xe; \
       gd-dev \
       libltdl \
       unzip" && \
-    apk add --no-cache apache2 $phpDeps $buildDeps && \
-    echo "Building PHP, this will take some time.. (output suppressed)" && \
-    (docker-php-source extract && \
-      cd /usr/src/php && \
-      ./configure \
-        --build=x86_64-linux-musl \
-        --with-config-file-path=/usr/local/etc/php \
-        --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
-        --disable-cgi \
-        --enable-ftp \
-        --enable-mbstring \
-        --enable-mysqlnd \
-        --with-curl \
-        --with-libedit \
-        --with-openssl \
-        --with-zlib \
-        --with-pcre-regex=/usr \
-        build_alias=x86_64-linux-musl \
-        CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
-        LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
-        CPPFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
-        --with-apxs2 \
-        --enable-maintainer-zts && \
-      make -j "$(nproc)" && \
-      make install && \
-      { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } && \
-      make clean && \
+    apk add --no-cache apache2 apache2-proxy $phpDeps $buildDeps && \
     docker-php-ext-install -j$(nproc) \
       bcmath \
       ctype \
@@ -149,21 +122,13 @@ RUN set -xe; \
         --with-jpeg-dir=/usr/include/ \
         --with-png-dir=/usr/include && \
     docker-php-ext-install -j$(nproc) gd && \
-    docker-php-source delete) > /dev/null 2>&1 && \
     apk del $buildDeps
 
 RUN ln -s /usr/sbin/httpd /usr/sbin/apache2 && \
     ln -s /usr/lib/apache2/ /usr/lib/apache2/modules && \
-    sed -i 's/^LoadModule php5_module.*/LoadModule php5_module modules\/libphp5\.so/g' /etc/apache2/httpd.conf && \
-    sed -i 's/^LoadModule php7_module.*/LoadModule php7_module modules\/libphp7\.so/g' /etc/apache2/httpd.conf && \
-    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/httpd.conf && \
-    echo "IncludeOptional /opt/app-root/etc/httpd/*.conf" >> /etc/apache2/httpd.conf && \
-    rm -f /etc/apache2/sites-enabled/* && \
-    rm -f /etc/apache2/conf-enabled/* && \
-    rm -f /etc/apache2/mods-enabled/mpm_event* && \
-    mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
-    chown -R $USER:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
-    chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
+    mkdir -p /usr/local/etc/php && \
+    chown -R $USER:0 /usr/local/etc/php && \
+    chmod -R 777 /usr/local/etc/php
 
 # </template>
 # <post>

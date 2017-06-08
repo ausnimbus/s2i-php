@@ -3,6 +3,7 @@ source /opt/app-root/etc/php_environment
 
 echo "   using PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT}"
 echo "   using OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION}"
-echo "   using HTTPD_MAX_REQUEST_WORKERS=${HTTPD_MAX_REQUEST_WORKERS}"
+echo "   using WEB_CONCURRENCY=${WEB_CONCURRENCY}"
 
-exec apache2 -DFOREGROUND
+exec apache2 -DFOREGROUND -f /opt/app-root/etc/conf/httpd.conf &
+exec php-fpm --fpm-config /opt/app-root/etc/conf/php-fpm.conf

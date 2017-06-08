@@ -31,15 +31,10 @@ fi
 export PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-$php_memory_limit}
 export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-$opcache_memory_limit}
 
-max_apache_workers=$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))
-[[ $max_apache_workers -le 1 ]] && max_apache_workers=2
-
-export HTTPD_MAX_REQUEST_WORKERS=${WEB_CONCURRENCY:-$max_apache_workers}
-apache_start_servers=$((HTTPD_MAX_REQUEST_WORKERS/4))
-[[ $apache_start_servers -le 1 ]] && apache_start_servers=1
-
-export HTTPD_START_SERVERS=${HTTPD_START_SERVERS:-$apache_start_servers}
-export HTTPD_MAX_SPARE_SERVERS=${HTTPD_MAX_SPARE_SERVERS:-$((HTTPD_START_SERVERS*2))}
+max_workers=$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))
+[[ $max_workers -le 1 ]] && max_workers=2
+[[ $max_workers -gt 64 ]] && max_workers=64
+export WEB_CONCURRENCY=${WEB_CONCURRENCY:-$max_workers}
 
 # Apache configuration
 export DOCUMENTROOT=${DOCUMENTROOT:-/}
@@ -72,12 +67,17 @@ export SHORT_OPEN_TAG=${SHORT_OPEN_TAG:-OFF}
 export PHPRC=${PHPRC:-/usr/local/etc/php/php.ini}
 export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-/usr/local/etc/php/conf.d/}
 
-# Process templates
-envsubst < /opt/app-root/etc/php/php.ini.template > /usr/local/etc/php/php.ini
-envsubst < /opt/app-root/etc/php/10-opcache.ini.template > /usr/local/etc/php/conf.d/10-opcache.ini
+# Process httpd templates
+envsubst < /opt/app-root/etc/conf/httpd.conf.template > /opt/app-root/etc/conf/httpd.conf
+for file in /opt/app-root/etc/conf.d/httpd/*; do
+  envsubst < $file > ${file%%.template}
+done
 
-envsubst < /opt/app-root/etc/httpd/00-apache.conf.template > /opt/app-root/etc/httpd/00-apache.conf
-envsubst < /opt/app-root/etc/httpd/00-directory.conf.template > /opt/app-root/etc/httpd/00-directory.conf
-envsubst < /opt/app-root/etc/httpd/00-logging.conf.template > /opt/app-root/etc/httpd/00-logging.conf
-envsubst < /opt/app-root/etc/httpd/50-mpm-tuning.conf.template > /opt/app-root/etc/httpd/50-mpm-tuning.conf
-envsubst < /opt/app-root/etc/httpd/99-modules.conf.template > /opt/app-root/etc/httpd/99-modules.conf
+# Process php templates
+envsubst < /opt/app-root/etc/php.ini.template > /usr/local/etc/php/php.ini
+for file in /opt/app-root/etc/conf.d/php/*; do
+  envsubst < $file > ${file%%.template}
+done
+
+# Process php-fpm template
+envsubst < /opt/app-root/etc/conf/php-fpm.conf.template > /opt/app-root/etc/conf/php-fpm.conf

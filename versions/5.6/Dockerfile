@@ -3,7 +3,7 @@
 #
 # DO NOT EDIT IT DIRECTLY.
 #
-FROM php:5.6
+FROM php:5.6-fpm
 # <pre>
 
 MAINTAINER AusNimbus <support@ausnimbus.com.au>
@@ -36,7 +36,7 @@ COPY ./contrib/ /opt/app-root
 # </pre>
 # <s2i>
 
-RUN apt-get install -y git
+RUN apt-get update && apt-get install -y git --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 ENV STI_SCRIPTS_PATH=/usr/libexec/s2i
 
@@ -59,7 +59,6 @@ CMD /usr/bin/base-usage
 
 RUN set -xe; \
     buildDeps=" \
-      apache2-dev \
       gcc \
       autoconf \
       libcurl4-openssl-dev \
@@ -89,33 +88,6 @@ RUN set -xe; \
       unzip" && \
     apt-get update && apt-get install -yq apache2 $phpDeps $buildDeps --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
-    echo "Building PHP, this will take some time.. (output suppressed)" && \
-    (docker-php-source extract && \
-      cd /usr/src/php && \
-      ./configure \
-        --build=x86_64-linux-gnu \
-        --with-config-file-path=/usr/local/etc/php \
-        --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
-        --disable-cgi \
-        --enable-ftp \
-        --enable-mbstring \
-        --enable-mysqlnd \
-        --with-curl \
-        --with-libedit \
-        --with-openssl \
-        --with-zlib \
-        --with-pcre-regex=/usr \
-        --with-libdir=lib/x86_64-linux-gnu \
-        build_alias=x86_64-linux-gnu \
-        CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
-        LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
-        CPPFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
-        --with-apxs2 \
-        --enable-maintainer-zts && \
-      make -j "$(nproc)" && \
-      make install && \
-      { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } && \
-      make clean && \
     docker-php-ext-install -j$(nproc) \
       bcmath \
       ctype \
@@ -146,18 +118,12 @@ RUN set -xe; \
         --with-jpeg-dir=/usr/include/ \
         --with-png-dir=/usr/include && \
     docker-php-ext-install -j$(nproc) gd && \
-    docker-php-source delete) > /dev/null 2>&1 && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
 
-RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
-    sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
-    echo "IncludeOptional /opt/app-root/etc/httpd/*.conf" >> /etc/apache2/apache2.conf && \
-    rm -f /etc/apache2/sites-enabled/* && \
-    rm -f /etc/apache2/conf-enabled/* && \
-    rm -f /etc/apache2/mods-enabled/mpm_event* && \
-    mkdir -p /run/apache2 /lock/apache2 /tmp/sessions && \
-    chown -R $USER:0 /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions && \
-    chmod -R ug+rwx /run/apache2 /lock/apache2 /usr/local/etc/php /tmp/sessions
+RUN ln -s /etc/mime.types /etc/apache2/mime.types && \
+    mkdir -p /usr/local/etc/php && \
+    chown -R $USER:0 /usr/local/etc/php && \
+    chmod -R 777 /usr/local/etc/php
 
 # </template>
 # <post>
