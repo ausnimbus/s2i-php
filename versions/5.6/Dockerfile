@@ -151,7 +151,7 @@ RUN set -xe; \
 
 RUN sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/apache2.conf && \
     sed -i -f /opt/app-root/etc/httpdconf.sed /etc/apache2/ports.conf && \
-    echo "IncludeOptional /opt/app-root/etc/conf.d/*.conf" >> /etc/apache2/apache2.conf && \
+    echo "IncludeOptional /opt/app-root/etc/httpd/*.conf" >> /etc/apache2/apache2.conf && \
     rm -f /etc/apache2/sites-enabled/* && \
     rm -f /etc/apache2/conf-enabled/* && \
     rm -f /etc/apache2/mods-enabled/mpm_event* && \

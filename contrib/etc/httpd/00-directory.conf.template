@@ -1,0 +1,21 @@
+DocumentRoot "/opt/app-root/src${DOCUMENTROOT}"
+DirectoryIndex disabled
+DirectoryIndex index.php index.html index.htm
+
+<FilesMatch \.php$>
+	SetHandler application/x-httpd-php
+</FilesMatch>
+
+<Directory "/opt/app-root/src${DOCUMENTROOT}">
+	Options SymLinksIfOwnerMatch
+	AllowOverride All
+	Require all granted
+</Directory>
+
+<FilesMatch "^(\.|composer\.)">
+		Require all denied
+</FilesMatch>
+
+<Files ".ht*">
+    Require all denied
+</Files>
