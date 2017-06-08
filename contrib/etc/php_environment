@@ -11,36 +11,28 @@ shopt -s dotglob
 umask 002
 
 # Calculate based on memory limits
-if [ $NO_MEMORY_LIMIT == "true" ]; then
-  echo "-> No cgroup limits set"
+if [ $MEMORY_LIMIT -gt 4096 ]; then
   php_memory_limit=512
   opcache_memory_limit=128
-  max_apache_workers=32
+elif [ $MEMORY_LIMIT -gt 2048 ]; then
+  php_memory_limit=368
+  opcache_memory_limit=128
+elif [ $MEMORY_LIMIT -gt 1024 ]; then
+  php_memory_limit=256
+  opcache_memory_limit=128
+elif [ $MEMORY_LIMIT -gt 512 ]; then
+  php_memory_limit=128
+  opcache_memory_limit=128
 else
-  if [ $MEMORY_LIMIT -gt 4096 ]; then
-    php_memory_limit=512
-    opcache_memory_limit=128
-  elif [ $MEMORY_LIMIT -gt 2048 ]; then
-    php_memory_limit=368
-    opcache_memory_limit=128
-  elif [ $MEMORY_LIMIT -gt 1024 ]; then
-    php_memory_limit=256
-    opcache_memory_limit=128
-  elif [ $MEMORY_LIMIT -gt 512 ]; then
-    php_memory_limit=128
-    opcache_memory_limit=128
-  else
-    php_memory_limit=128
-    opcache_memory_limit=64
-  fi
-
-  echo "-> Cgroups memory limits are set"
-  max_apache_workers=$((MEMORY_LIMIT/php_memory_limit))
-  [[ $max_apache_workers -le 1 ]] && max_apache_workers=2
+  php_memory_limit=128
+  opcache_memory_limit=64
 fi
 
 export PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-$php_memory_limit}
 export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-$opcache_memory_limit}
+
+max_apache_workers=$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))
+[[ $max_apache_workers -le 1 ]] && max_apache_workers=2
 
 export HTTPD_MAX_REQUEST_WORKERS=${HTTPD_MAX_REQUEST_WORKERS:-$max_apache_workers}
 apache_start_servers=$((HTTPD_MAX_REQUEST_WORKERS/4))
