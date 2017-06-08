@@ -20,6 +20,7 @@ USER 0
 
 RUN apt-get update && apt-get install -y \
       rsync nano vim && \
+    ln -sf /bin/bash /bin/sh && \
     mkdir -p $HOME && \
     useradd -u 1001 -g 0 -d $HOME -s /sbin/nologin \
       -c "Default Application User" default && \

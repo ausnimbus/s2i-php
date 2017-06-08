@@ -18,7 +18,8 @@ ENV USER=100 \
 
 USER 0
 
-RUN apk --no-cache add bash bash-completion rsync && \
+RUN apk --no-cache add bash rsync && \
+    ln -sf /bin/bash /bin/sh && \
     mkdir -p $HOME && \
     adduser -S -u 1001 -G root -h $HOME -s /sbin/nologin \
       -g "Default Application User" default && \
