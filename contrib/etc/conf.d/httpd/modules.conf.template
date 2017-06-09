@@ -18,6 +18,7 @@ LoadModule proxy_module /usr/lib/apache2/modules/mod_proxy.so
 LoadModule proxy_fcgi_module /usr/lib/apache2/modules/mod_proxy_fcgi.so
 LoadModule remoteip_module /usr/lib/apache2/modules/mod_remoteip.so
 LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+LoadModule alias_module /usr/lib/apache2/modules/mod_alias.so
 LoadModule filter_module /usr/lib/apache2/modules/mod_filter.so
 LoadModule deflate_module /usr/lib/apache2/modules/mod_deflate.so
 LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so
@@ -117,4 +118,3 @@ LoadModule slotmem_shm_module /usr/lib/apache2/modules/mod_slotmem_shm.so
 #LoadModule actions_module /usr/lib/apache2/modules/mod_actions.so
 #LoadModule speling_module /usr/lib/apache2/modules/mod_speling.so
 #LoadModule userdir_module /usr/lib/apache2/modules/mod_userdir.so
-#LoadModule alias_module /usr/lib/apache2/modules/mod_alias.so
