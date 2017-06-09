@@ -65,7 +65,7 @@ export INCLUDE_PATH=${INCLUDE_PATH:-.:/opt/app-root/src}
 export SESSION_PATH=${SESSION_PATH:-/tmp/sessions}
 export SHORT_OPEN_TAG=${SHORT_OPEN_TAG:-OFF}
 export PHPRC=${PHPRC:-/opt/app-root/etc/php.ini}
-export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-/opt/app-root/}
+export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-"/usr/local/etc/php/conf.d/:/opt/app-root/"}
 
 # Process templates
 for file in $(find /opt/app-root/etc/ -name "*.template"); do

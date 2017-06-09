@@ -10,7 +10,7 @@ IMAGE_NAME=${IMAGE_NAME-ausnimbus/s2i-php:7.1}
 VERSION=${VERSION-"7.1"}
 S2I_ARGS=${S2I_ARGS:-""}
 
-TEST_APPS=({phpinfo,laravel-unit-test-example})
+TEST_APPS=({phpinfo,laravel-unit-test-example,common-extensions})
 VERSION_COMMAND="php -v"
 
 extra_tests() {
