@@ -29,9 +29,9 @@ if [ -f composer.json ]; then
 
   # Install App dependencies using Composer
   if [ $DEBUG == "TRUE" ]; then
-    ./composer.phar install --no-interaction --no-ansi --dev --optimize-autoloader
+    ./composer.phar install --no-interaction --dev --optimize-autoloader
   else
-    ./composer.phar install --no-interaction --no-ansi --no-dev --optimize-autoloader
+    ./composer.phar install --no-interaction --no-dev --optimize-autoloader
   fi
 
   if [ ! -f composer.lock ]; then

@@ -17,16 +17,16 @@ The following environment variables are made available:
     configured for you
   * Default: `$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))`
 * **DEBUG**
-  * Set to TRUE to enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `composer install --dev`, `OPCACHE_VALIDATE_TIMESTAMPS` etc.)
+  * Set to TRUE will enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `composer install --dev`, `OPCACHE_VALIDATE_TIMESTAMPS` etc.)
   * Default: FALSE
 * **PRESTISSIMO**
-  * Set to TRUE to enable the [Prestissimo](https://github.com/hirak/prestissimo) parallel composer install plugin
+  * Set to TRUE will enable the [Prestissimo](https://github.com/hirak/prestissimo) parallel composer install plugin
   * Default: FALSE
 
 The following environment variables set their equivalent property value in the php.ini file:
 * **PHP_MEMORY_LIMIT**
   * Set the default PHP memory limit in MB
-  * Default: 128
+  * Default: 128-512 (dynamically configured based on $MEMORY_LIMIT)
 * **ERROR_REPORTING**
   * Informs PHP of which errors, warnings and notices you would like it to take action for
   * Default: E_ALL & ~E_NOTICE
@@ -55,7 +55,7 @@ The following environment variables set their equivalent property value in the p
 The following environment variables set their equivalent property value in the opcache.ini file:
 * **OPCACHE_MEMORY_CONSUMPTION**
   * The OPcache shared memory storage size in megabytes
-  * Default: `$memory_limit/4MB`
+  * Default: 128MB (64MB in low memory configurations)
 * **OPCACHE_VALIDATE_TIMESTAMPS**
   * Whether OPCache should check for changes in files. When set to 0, you must reset the OPcache
     manually or restart the webserver for changes to the filesystem to take effect.
