@@ -4,7 +4,7 @@
 * DO NOT EDIT IT DIRECTLY.
 */
 node {
-        def variants = "default,alpine".split(',');
+        def variants = "default".split(',');
         for (int v = 0; v < variants.length; v++) {
 
                 def versions = "5.6,7.0,7.1".split(',');
@@ -40,7 +40,7 @@ node {
                                                                         "name" : "${tag}",
                                                                         "from" : [
                                                                                 "kind" : "DockerImage",
-                                                                                "name" : "php:${versions[i]}-fpm",
+                                                                                "name" : "php:${tag}",
                                                                         ],
                                                                         "referencePolicy" : [
                                                                                 "type" : "Source"
