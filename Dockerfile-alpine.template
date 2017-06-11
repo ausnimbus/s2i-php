@@ -68,6 +68,6 @@ RUN set -xe; \
 
 RUN ln -s /usr/sbin/httpd /usr/sbin/apache2 && \
     ln -s /usr/lib/apache2/ /usr/lib/apache2/modules && \
-    mkdir -p /usr/local/etc/php && \
-    chown -R $USER:0 /usr/local/etc/php && \
-    chmod -R 777 /usr/local/etc/php
+    mkdir -p /usr/local/etc/php /tmp/sessions && \
+    chown -R $USER:0 /usr/local/etc/php /tmp/sessions && \
+    chmod -R 777 /usr/local/etc/php /tmp/sessions
