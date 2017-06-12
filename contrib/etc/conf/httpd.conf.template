@@ -93,11 +93,4 @@ AccessFileName .htaccess
 	Require all denied
 </FilesMatch>
 
-#
-# The following directive define nicknames for use with
-# a CustomLog "|/bin/cat" ausnimbus
-#
-LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" ausnimbus
-CustomLog "|/bin/cat" ausnimbus
-
 IncludeOptional /opt/app-root/etc/conf.d/httpd/*.conf
