@@ -11,7 +11,7 @@ Define ausnimbus-fcgi unix:/tmp/ausnimbus.fcgi.sock|fcgi://ausnimbus-fcgi
     # correctly and everything breaks.
 
     # NOTE: Setting retry to avoid cached HTTP 503
-    ProxySet disablereuse=On retry=0
+    ProxySet retry=0
 </Proxy>
 
 <Directory "/opt/app-root/src${DOCUMENTROOT}">
