@@ -1,13 +1,12 @@
-# AusNimbus Builder for PHP
+# AusNimbus Builder for PHP [![Build Status](https://travis-ci.org/ausnimbus/s2i-php.svg?branch=master)](https://travis-ci.org/ausnimbus/s2i-php) [![Docker Repository on Quay](https://quay.io/repository/ausnimbus/s2i-php/status "Docker Repository on Quay")](https://quay.io/repository/ausnimbus/s2i-php)
 
-[![Build Status](https://travis-ci.org/ausnimbus/s2i-php.svg?branch=master)](https://travis-ci.org/ausnimbus/s2i-php)
-[![Docker Repository on Quay](https://quay.io/repository/ausnimbus/s2i-php/status "Docker Repository on Quay")](https://quay.io/repository/ausnimbus/s2i-php)
+[![PHP](https://user-images.githubusercontent.com/2239920/27287522-52c8d548-5547-11e7-9830-d4e53152f535.jpg)](https://www.ausnimbus.com.au/)
 
-[AusNimbus](https://www.ausnimbus.com.au/) builder for PHP provides a fast, secure and reliable [PHP hosting](https://www.ausnimbus.com.au/languages/php-hosting/) environment.
+The [AusNimbus](https://www.ausnimbus.com.au/) builder for PHP provides a fast, secure and reliable [PHP hosting](https://www.ausnimbus.com.au/languages/php-hosting/) environment.
+
+It uses composer for dependency management. Apache is used as the web server. Only the HTTP protocol is permitted for incoming connections.
 
 ## Environment Variables
-
-The following environment variables are made available:
 
 * **DOCUMENTROOT**
   * Path that defines the DocumentRoot for your application (ie. /public)
@@ -78,10 +77,3 @@ The versions currently supported are:
 - 5.6
 - 7.0
 - 7.1
-
-## Variants
-
-Two different variants are made available:
-
-- Default
-- Alpine
