@@ -12,10 +12,10 @@ node {
 
                   if (variants[v] == "default") {
                     variant = ""
-                    tag = "${versions[i]}-fpm"
+                    tag = "${versions[i]}"
                   } else {
                     variant = variants[v]
-                    tag = "${versions[i]}-fpm-${variant}"
+                    tag = "${versions[i]}-${variant}"
                   }
 
 
@@ -40,7 +40,7 @@ node {
                                                                         "name" : "${tag}",
                                                                         "from" : [
                                                                                 "kind" : "DockerImage",
-                                                                                "name" : "php:${tag}",
+                                                                                "name" : "php:${tag}-fpm",
                                                                         ],
                                                                         "referencePolicy" : [
                                                                                 "type" : "Source"
@@ -130,7 +130,7 @@ node {
         echo "Starting test application"
         echo "==============================="
 
-        def testApp = openshift.newApp("https://github.com/ausnimbus/php-ex", "--image-stream=s2i-php:${tag}", "-l app=php-ex");
+        def testApp = openshift.newApp("s2i-php:${tag}~https://github.com/ausnimbus/php-ex", "-l app=php-ex");
         echo "new-app created ${testApp.count()} objects named: ${testApp.names()}"
         testApp.describe()
 
@@ -157,9 +157,11 @@ node {
         def testAppHost = testAppService.object().spec.clusterIP;
         def testAppPort = testAppService.object().spec.ports[0].port;
 
-        sleep 60
-        echo "Testing endpoint ${testAppHost}:${testAppPort}"
-        sh "curl -o /dev/null $testAppHost:$testAppPort"
+        retry(2) {
+          sleep 60
+          echo "Testing endpoint ${testAppHost}:${testAppPort}"
+          sh "curl -o /dev/null $testAppHost:$testAppPort"  
+        }
 }
 
                                 }
