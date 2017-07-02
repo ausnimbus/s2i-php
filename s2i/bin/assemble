@@ -1,10 +1,11 @@
 #!/bin/bash
 source /opt/app-root/etc/php_environment
 
-if [ -d /tmp/artifacts/ ]; then
+if ls -U /tmp/artifacts/* 1> /dev/null 2>&1; then
     echo "---> Restoring build artifacts..."
     mv -v /tmp/artifacts/* ./
 fi
+
 
 echo "---> Installing application source..."
 mv /tmp/src/* ./

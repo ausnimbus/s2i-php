@@ -3,6 +3,7 @@ source cgroup-limits
 
 set -e
 set -o pipefail
+
 # Include hidden files
 shopt -s dotglob
 
