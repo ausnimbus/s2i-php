@@ -23,6 +23,7 @@ It uses composer for dependency management. Apache is used as the web server. On
   * Default: FALSE
 
 The following environment variables set their equivalent property value in the php.ini file:
+
 * **PHP_MEMORY_LIMIT**
   * Set the default PHP memory limit in MB
   * Default: 128-512 (dynamically configured based on $MEMORY_LIMIT)
@@ -52,6 +53,7 @@ The following environment variables set their equivalent property value in the p
   * Default: OFF
 
 The following environment variables set their equivalent property value in the opcache.ini file:
+
 * **OPCACHE_MEMORY_CONSUMPTION**
   * The OPcache shared memory storage size in megabytes
   * Default: 128MB (64MB in low memory configurations)
