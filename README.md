@@ -4,78 +4,177 @@
 
 The [AusNimbus](https://www.ausnimbus.com.au/) builder for PHP provides a fast, secure and reliable [PHP hosting](https://www.ausnimbus.com.au/languages/php-hosting/) environment.
 
-It uses composer for dependency management. Apache is used as the web server. Only the HTTP protocol is permitted for incoming connections.
+This document describes the behaviour and environment configuration when running your PHP apps on AusNimbus.
 
-## Environment Variables
+## Runtime Environments
 
-* **DOCUMENTROOT**
-  * Path that defines the DocumentRoot for your application (ie. /public)
-  * Default: /
-* **WEB_CONCURRENCY**
-  * Set the number of child processes running your app, by default this is automatically
-    configured for you
-  * Default: `$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))`
-* **DEBUG**
-  * Set to TRUE will enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `composer install --dev`, `OPCACHE_VALIDATE_TIMESTAMPS` etc.)
-  * Default: FALSE
-* **PRESTISSIMO**
-  * Set to TRUE will enable the [Prestissimo](https://github.com/hirak/prestissimo) parallel composer install plugin
-  * Default: FALSE
+AusNimbus supports each of the major releases.
 
-The following environment variables set their equivalent property value in the php.ini file:
+The currently supported versions are `5.6`, `7.0`, `7.1`
 
-* **PHP_MEMORY_LIMIT**
-  * Set the default PHP memory limit in MB
-  * Default: 128-512 (dynamically configured based on $MEMORY_LIMIT)
-* **ERROR_REPORTING**
-  * Informs PHP of which errors, warnings and notices you would like it to take action for
-  * Default: E_ALL & ~E_NOTICE
-* **DISPLAY_ERRORS**
-  * Controls whether or not and where PHP will output errors, notices and warnings
-  * Default: OFF
-* **DISPLAY_STARTUP_ERRORS**
-  * Cause display errors which occur during PHP's startup sequence to be handled separately from display errors
-  * Default: OFF
-* **TRACK_ERRORS**
-  * Store the last error/warning message in $php_errormsg (boolean)
-  * Default: OFF
-* **HTML_ERRORS**
-  * Link errors to documentation related to the error
-  * Default: OFF
-* **INCLUDE_PATH**
-  * Path for PHP source files
-  * Default: .:/opt/app-root/src
-* **SESSION_PATH**
-  * Location for session data files
-  * Default: /tmp/sessions
-* **SHORT_OPEN_TAG**
-  * Determines whether or not PHP will recognize code between <? and ?> tags
-  * Default: OFF
+## Web Process
 
-The following environment variables set their equivalent property value in the opcache.ini file:
+AusNimbus supports Apache 2.4 as the dedicated web server for your PHP applications. Apache interfaces with PHP-FPM using `mod_proxy_fcgi`.
 
-* **OPCACHE_MEMORY_CONSUMPTION**
-  * The OPcache shared memory storage size in megabytes
-  * Default: 128MB (64MB in low memory configurations)
-* **OPCACHE_VALIDATE_TIMESTAMPS**
-  * Whether OPCache should check for changes in files. When set to 0, you must reset the OPcache
-    manually or restart the webserver for changes to the filesystem to take effect.
-  * Default: 0
-* **OPCACHE_REVALIDATE_FREQ**
-  * How often to check script timestamps for updates, in seconds.
-    0 will result in OPcache checking for updates on every request.
-    Ignored if OPCACHE_VALIDATE_TIMESTAMPS is 0
-  * Default: 2
+AusNimbus handles SSL termination at the load balancer.
 
-You can use a custom composer repository mirror URL to download packages instead of the default 'packagist.org':
+By default the root of your repository will be used as the document root. To use a sub-directory you may use the following environment variable:
 
-* **COMPOSER_MIRROR**
-  * Adds a custom composer repository mirror URL to composer configuration. Note: This only affects packages listed in composer.json.
+NAME         | Description
+-------------|-------------
+DOCUMENTROOT | Path that defines the DocumentRoot for your application (ie. /public)
 
-## Versions
+## Dependency Management
 
-The versions currently supported are:
+The builder uses [composer](http://getcomposer.org/) for installing dependencies. A valid `composer.json` file must be included for dependencies to be installed.
 
-- 5.6
-- 7.0
-- 7.1
+The following command is run to install your dependencies:
+
+```
+./composer.phar install --no-interaction --no-dev --optimize-autoloader
+```
+
+It is recommended to include a `composer.lock` file in your repository to ensure the state of your dependencies are consistent.
+
+### require-dev
+
+By default your application will be built and deployed in `production`. AusNimbus will not install development dependencies from the `require-dev` section of `composer.json` unless you explicitly set the [Debug Mode](#Debug Mode) as outlined below.
+
+### Prestissimo
+
+The [Prestissimo](https://github.com/hirak/prestissimo) parallel composer install plugin boasts significantly faster dependency install times and can be installed with the following environment variable:
+
+NAME        | Description
+------------|-------------
+PRESTISSIMO | Set to TRUE will enable the [Prestissimo](https://github.com/hirak/prestissimo) parallel composer install plugin
+
+## Environment Configuration
+
+Both the PHP and OPCache sizes are automatically configured for you based on your app instance size.
+
+Size     | Value
+---------|-------------
+Small    | php=128MB / opcache=64MB
+Medium   | php=128MB / opcache=128MB
+Large    | php=256MB / opcache=128MB
+2xLarge  | php=368MB / opcache=128MB
+
+Some of these values may not be ideal based on your application requirement. So you may optionally overwrite these values with the following environment variables:
+
+Name                         | Description
+-----------------------------|---------------------------------------------
+PHP_MEMORY_LIMIT             | Set the PHP memory limit in MB
+OPCACHE_MEMORY_CONSUMPTION   | Set the OPCache shared memory storage in MB
+
+## Advanced
+
+### Build Customization
+
+#### Configuring composer
+
+If you would like to use a custom composer mirror you may use the following environment variable:
+
+NAME            | Description
+----------------|-------------
+COMPOSER_MIRROR | Define a custom composer registry mirror for downloading dependencies
+
+### Application Concurrency
+
+AusNimbus automatically calculates the number of child processes running your app based on the memory limits defined above.
+
+The default configuration does not reserve any memory for the Apache web server and is optimized for applications that have auto scaling enabled.
+
+This may be undesirable for non-scalable or memory intensive apps. If your application restarts frequently you may want to overwrite this configuration:
+
+NAME            | Description
+----------------|-------------
+WEB_CONCURRENCY | Set the number of child processes running your app, by default this is automatically configured for you.
+
+### Customizing Settings
+
+Any `.ini` [files](http://docs.php.net/manual/en/configuration.file.per-user.php) placed into your repository will be loaded after the main `php.ini` file.
+
+You may also configure OPCache with the following environment variables:
+
+NAME                        | Description
+----------------------------|-------------
+OPCACHE_VALIDATE_TIMESTAMPS | Whether OPCache should check for changes in files. When set to 0, you must reset the OPcache manually or restart the webserver for changes to the filesystem to take effect. Default: 0
+OPCACHE_REVALIDATE_FREQ     | How often OPCache should check for changes in files. Ignored if `OPCACHE_VALIDATE_TIMESTAMPS` is 0
+
+## Extending
+
+AusNimbus builders are split into two stages:
+
+- Build
+- Runtime
+
+Both stages are completely extensible, allowing you to customize or completely overwrite each stage.
+
+### Build Stage (assemble)
+
+If you want to customize the build stage, you need to add the executable `.s2i/bin/assemble` file in your repository.
+
+This file should contain the logic required to build and install any dependencies your application requires.
+
+If you only want to extend the build stage, you may use this example:
+
+```sh
+#!/bin/bash
+
+echo "Logic to include before"
+
+# Run the default builder logic
+. /usr/libexec/s2i/assemble
+
+echo "Logic to include after"
+```
+
+### Runtime Stage (run)
+
+You may customize or overwrite the entire runtime stage by including the executable file `.s2i/bin/run`
+
+This file should contain the logic required to execute your application.
+
+If you only want to extend the run stage, you may use this example:
+
+```sh
+#!/bin/bash
+
+echo "Logic to include before"
+
+# Run the default builder logic
+. /usr/libexec/s2i/run
+```
+
+As the run script executes every time your application is deployed, scaled or restarted it's recommended to keep avoid including complex logic which may delay the start-up process of your application.
+
+### Persistent Environment Variables
+
+The recommend approach is to set your environment variables in the AusNimbus dashboard.
+
+However it is possible to store environment variables in code using the `.s2i/environment` file.
+
+The file expects a key=value format eg.
+
+```
+KEY=VALUE
+FOO=BAR
+```
+
+## Debug Mode
+
+The AusNimbus builder provides a convenient environment variable to help you debug your application.
+
+NAME        | Description
+------------|-------------
+DEBUG       | Set to TRUE will enable common debug settings (ie. `DISPLAY_ERRORS=ON`, `ERROR_REPORTING=E_ALL & ~E_NOTICE`, `composer install --dev`, `OPCACHE_VALIDATE_TIMESTAMPS` etc.)
+
+## Troubleshooting
+
+### Why aren't my changes being picked up
+
+The default value for `OPCACHE_VALIDATE_TIMESTAMPS=0` means any changes you make to files will not be read by the PHP process.
+
+This is setting improves the response time of apps production as PHP files may be loaded entirely from memory.
+
+If you require to edit files you should set the environment variable `OPCACHE_VALIDATE_TIMESTAMPS=1`

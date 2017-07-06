@@ -14,23 +14,23 @@ umask 002
 # Calculate based on memory limits
 if [ $MEMORY_LIMIT -gt 4096 ]; then
   php_memory_limit=512
-  opcache_memory_limit=128
+  opcache_memory_consumption=128
 elif [ $MEMORY_LIMIT -gt 2048 ]; then
   php_memory_limit=368
-  opcache_memory_limit=128
+  opcache_memory_consumption=128
 elif [ $MEMORY_LIMIT -gt 1024 ]; then
   php_memory_limit=256
-  opcache_memory_limit=128
+  opcache_memory_consumption=128
 elif [ $MEMORY_LIMIT -gt 512 ]; then
   php_memory_limit=128
-  opcache_memory_limit=128
+  opcache_memory_consumption=128
 else
   php_memory_limit=128
-  opcache_memory_limit=64
+  opcache_memory_consumption=64
 fi
 
 export PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-$php_memory_limit}
-export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-$opcache_memory_limit}
+export OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-$opcache_memory_consumption}
 
 max_workers=$((MEMORY_LIMIT/PHP_MEMORY_LIMIT))
 [[ $max_workers -le 1 ]] && max_workers=2
@@ -62,9 +62,7 @@ else
   export OPCACHE_VALIDATE_TIMESTAMPS${OPCACHE_VALIDATE_TIMESTAMPS:-0}
 fi
 
-export INCLUDE_PATH=${INCLUDE_PATH:-.:/opt/app-root/src}
-export SESSION_PATH=${SESSION_PATH:-/tmp/sessions}
-export SHORT_OPEN_TAG=${SHORT_OPEN_TAG:-OFF}
+# PHP Environment Variables
 export PHPRC=${PHPRC:-/opt/app-root/etc/php.ini}
 export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-"/usr/local/etc/php/conf.d/:/opt/app-root/"}
 
