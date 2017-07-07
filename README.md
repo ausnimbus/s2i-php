@@ -6,6 +6,26 @@ The [AusNimbus](https://www.ausnimbus.com.au/) builder for PHP provides a fast, 
 
 This document describes the behaviour and environment configuration when running your PHP apps on AusNimbus.
 
+## Table of Contents
+
+- [Runtime Environments](#runtime-environments)
+- [Web Process](#web-process)
+- [Dependency Management](#dependency-management)
+  - [require-dev](#require-dev)
+  - [Prestissimo](#prestissimo)
+- [Environment Configuration](#environment-configuration)
+- [Advanced](#advanced)
+  - [Build Customization](#build-customization)
+    - [Configuring composer](#configuring-composer)
+  - [Application Concurrency](#application-concurrency)
+  - [Customizing Settings](#customizing-settings)
+- [Extending](#extending)
+  - [Build Stage (assemble)](#build-stage-assemble)
+  - [Runtime Stage (run)](#runtime-stage-run)
+  - [Persistent Environment Variables](#persistent-environment-variables)
+- [Debug Mode](#debug-mode)
+- [Troubleshooting](#troubleshooting)
+
 ## Runtime Environments
 
 AusNimbus supports each of the major releases.
