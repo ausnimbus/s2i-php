@@ -19,7 +19,7 @@ ENV USER=999 \
 USER 0
 
 RUN apt-get update && apt-get install -y \
-      rsync nano vim && \
+      rsync nano vim curl && \
       rm -rf /var/lib/apt/lists/* && \
     ln -sf /bin/bash /bin/sh && \
     mkdir -p $HOME && \
