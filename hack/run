@@ -5,7 +5,7 @@ DISPLAY_NAME="PHP"
 TYPE="s2i"
 FROM="php:%TAG%-fpm"
 VARIANTS=${VARIANTS:-"default"}
-VERSIONS=${VERSIONS:-"5.6,7.0,7.1"}
+VERSIONS=${VERSIONS:-"5.6,7.0,7.1,7.2-rc"}
 
 DOCKER_PUSH=${DOCKER_PUSH:-"false"}
 

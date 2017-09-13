@@ -7,7 +7,7 @@ node {
         def variants = "default".split(',');
         for (int v = 0; v < variants.length; v++) {
 
-                def versions = "5.6,7.0,7.1".split(',');
+                def versions = "5.6,7.0,7.1,7.2-rc".split(',');
                 for (int i = 0; i < versions.length; i++) {
 
                   if (variants[v] == "default") {

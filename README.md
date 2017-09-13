@@ -30,7 +30,7 @@ This document describes the behaviour and environment configuration when running
 
 AusNimbus supports each of the major releases.
 
-The currently supported versions are `5.6`, `7.0`, `7.1`
+The currently supported versions are `5.6`, `7.0`, `7.1`, `7.2-rc`
 
 ## Web Process
 
