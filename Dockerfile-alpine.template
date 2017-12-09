@@ -55,6 +55,7 @@ RUN set -xe; \
       pdo_pgsql \
       phar \
       simplexml \
+      sockets \
       soap \
       xml \
       zip && \
